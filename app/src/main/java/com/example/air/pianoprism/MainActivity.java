@@ -63,7 +63,7 @@ public class MainActivity extends ActionBarActivity {
     private int channelConfig = AudioFormat.CHANNEL_CONFIGURATION_MONO;
     private int audioFormat = AudioFormat.ENCODING_PCM_16BIT;
     //private int bufferSize = AudioRecord.getMinBufferSize(samplingRate, channelConfig, audioFormat);
-    private int bufferSize = 512;
+    private int bufferSize = 1024;
     private int sampleNumBits = 16;
     private int numChannels = 1;
 
@@ -84,8 +84,8 @@ public class MainActivity extends ActionBarActivity {
 
    /* Handler handle = new Handler() {
         public void handleMessage(Message msg) {
-            Bundle b = msg.getData();
-            String message = b.getString("msg_s");
+            Bundle containerForInfoToSend = msg.getData();
+            String message = containerForInfoToSend.getString("msg_s");
             StringTokenizer st = new StringTokenizer(message);
             String mes = st.nextToken();
             TextView v = (TextView) findViewById(R.id.txtField);
@@ -115,9 +115,9 @@ public class MainActivity extends ActionBarActivity {
             /**************************************************************************************************************/
 
 
-        /*    Bundle b = msg.getData();
+        /*    Bundle containerForInfoToSend = msg.getData();
 
-            fft_arr = b.getDoubleArray("data");
+            fft_arr = containerForInfoToSend.getDoubleArray("data");
 
             //Log.d("handle", arrayToString(fft_arr));
             for (int i = 0; i < bufferSize; i++) {
@@ -598,30 +598,30 @@ public class MainActivity extends ActionBarActivity {
                 if (val > max / 2 + max / 4) {
                     if (val > 2 * (max - max / 2) / 3) {
                         result = colors[0];
-                        Log.d("colors","point 0");
+      ///                  Log.d("colors","point 0");
                     } else if (val >= (2/3)*max  && val <= (5/6)*max) {
                         result = colors[1];
-                        Log.d("colors","point 1");
+    //                    Log.d("colors","point 1");
 
                     } else if ( val >= max/2 && val <= (2/3)*max) {
                         result = colors[2];
-                        Log.d("colors","point 2");
+  //                      Log.d("colors","point 2");
 
                     }
                 } else {
                     if (val > max / 2 + 2 * (max / 4) / 3) {
                         result = colors[3];
-                        Log.d("colors","point 3");
+//                        Log.d("colors","point 3");
 
 
                     } else if (val > (max / 4) / 3) {
                         result = colors[4];
-                        Log.d("colors","point 4");
+            //            Log.d("colors","point 4");
 
 
                     } else if ( val  <= (max / 4) / 3) {
                         result = colors[5];
-                        Log.d("colors","point 5");
+          //              Log.d("colors","point 5");
 
                     }
                 }
@@ -629,34 +629,34 @@ public class MainActivity extends ActionBarActivity {
                 if (val > max / 4) {
                     if (val > max / 4 + 2 * (max / 2 - max / 4) / 3) {
                         result = colors[6];
-                        Log.d("colors","point 6");
+         //               Log.d("colors","point 6");
 
 
                     } else if (val > max / 4 + (max / 2 - max / 4) / 3) {
                         result = colors[7];
-                        Log.d("colors","point 7");
+         //               Log.d("colors","point 7");
 
 
                     } else {
                         result = colors[8];
-                        Log.d("colors","point 8");
+           //             Log.d("colors","point 8");
 
 
                     }
                 } else {
                     if (val > 2 * max / 12) {
                         result = colors[9];
-                        Log.d("colors","point 9");
+             //           Log.d("colors","point 9");
 
 
                     } else if (val > max / 12) {
                         result = colors[10];
-                        Log.d("colors","point 10");
+               ///         Log.d("colors","point 10");
 
 
                     } else {
                         result = colors[11];
-                        Log.d("colors","point 11");
+                  //      Log.d("colors","point 11");
 
 
                     }
