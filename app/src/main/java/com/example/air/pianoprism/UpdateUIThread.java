@@ -112,23 +112,17 @@ public class UpdateUIThread extends Thread {
         ////////////////////////////////////////////////
         // Variable instantiations
         ///////////////////////////////////////////////
-
+        int fft_len = 0;
         keepRunning = true;
         containerForInfoToSend =  new Bundle();
-
-        int fft_len = 0;
-        fft = new DoubleFFT_1D(fft_len); // class that performs FFT - library JTransforms
-
         tempBuffer = new short[this.bufferSize];
         processingBuffer = new double[bufferSize];
-
         this.notes = fillNotes();
-
         Arrays.fill(final_result, 0);
 
 
         ///////////////////////////////////////////////////////////////
-        //  ZERO PADDING CODE
+        //  FFT INITIALIZATION AND ZERO PADDING CODE
         //////////////////////////////////////////////////////////////
         this.zeroPadTimes = 3;
 
@@ -136,6 +130,9 @@ public class UpdateUIThread extends Thread {
             fft_len = bufferSize*zeroPadTimes + bufferSize;
         else
             fft_len = bufferSize;
+
+        fft = new DoubleFFT_1D(fft_len); // class that performs FFT - library JTransforms
+
         //////////////////////////////////////////////////////////////
 
         //////////////////////////////////////////////////////////////////////

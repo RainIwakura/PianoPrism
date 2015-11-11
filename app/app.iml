@@ -73,6 +73,8 @@
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/exploded-aar/com.android.support/appcompat-v7/22.1.1/jars" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/exploded-aar/com.android.support/support-v4/22.1.1/jars" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/exploded-aar/com.jjoe64/graphview/4.0.1/jars" />
+      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/exploded-aar/jp.kshoji/ble-midi/0.0.5/jars" />
+      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/exploded-aar/jp.kshoji/javax-sound-midi/0.0.1/jars" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/incremental" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/jacoco" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/javaResources" />
@@ -90,11 +92,19 @@
     </content>
     <orderEntry type="jdk" jdkName="Android API 22 Platform" jdkType="Android SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" exported="" name="mtj" level="project" />
+    <orderEntry type="library" exported="" name="vectorz-0.9.0" level="project" />
+    <orderEntry type="library" exported="" name="concurrent" level="project" />
     <orderEntry type="library" exported="" name="support-annotations-22.1.1" level="project" />
     <orderEntry type="library" exported="" name="support-v4-22.1.1" level="project" />
     <orderEntry type="library" exported="" name="graphview-4.0.1" level="project" />
-    <orderEntry type="library" exported="" name="JLargeArrays-1.2" level="project" />
+    <orderEntry type="library" exported="" name="ble-midi-0.0.5" level="project" />
     <orderEntry type="library" exported="" name="JTransforms-3.0" level="project" />
     <orderEntry type="library" exported="" name="appcompat-v7-22.1.1" level="project" />
+    <orderEntry type="library" exported="" name="gson-2.1.funf" level="project" />
+    <orderEntry type="library" exported="" name="JLargeArrays-1.2" level="project" />
+    <orderEntry type="library" exported="" name="colt" level="project" />
+    <orderEntry type="library" exported="" name="javax-sound-midi-0.0.1" level="project" />
+    <orderEntry type="library" exported="" name="funf-0.4.2" level="project" />
   </component>
 </module>

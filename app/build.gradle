@@ -31,11 +31,32 @@ android {
 }
 
 
+repositories {
+    maven {
+        url 'https://github.com/kshoji/BLE-MIDI-for-Android/raw/master/library/repository'
+    }
+    maven {
+        url 'https://github.com/kshoji/USB-MIDI-Driver/raw/master/library/repository'
+    }
+    maven { url 'https://github.com/kshoji/javax.sound.midi-for-Android/raw/master/javax.sound.midi/repository' }
+
+    mavenCentral()
+}
+
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile 'com.android.support:appcompat-v7:22.1.1'
     compile 'com.jjoe64:graphview:4.0.1'
+    compile 'jp.kshoji:ble-midi:0.0.5:@aar'
+    compile 'jp.kshoji:javax-sound-midi:0.0.1:@aar'
+    compile files('libs/mtj.jar')
+    compile files('libs/concurrent.jar')
+    compile files('libs/colt.jar')
+    testCompile 'junit:junit:4.12'
+    compile files('libs/vectorz-0.9.0.jar')
+    compile files('libs/gson-2.1.funf.jar')
+
     compile files('libs/JTransforms-3.0.jar')
 }
 

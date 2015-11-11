@@ -1,6 +1,8 @@
 package com.example.air.pianoprism;
 
 import android.content.Context;
+import android.content.res.AssetManager;
+import android.content.res.Resources;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
@@ -31,9 +33,16 @@ import android.widget.RelativeLayout;
 import android.os.Environment;
 import android.widget.TextView;
 
+import com.example.air.pianoprism.examples.PianoRollExample;
+import com.example.air.pianoprism.examples.PianoRollExampleDoubles;
 import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.series.LineGraphSeries;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -312,6 +321,53 @@ public class MainActivity extends ActionBarActivity {
         lightorange = this.getResources().getColor(R.color.lightorange);
         darkred = this.getResources().getColor(R.color.darkred);
         cyan = this.getResources().getColor(R.color.cyan);
+
+
+
+
+
+
+
+
+
+        PianoRollExample pre = new PianoRollExample();
+
+    /*    Uri auri = Uri.parse("android.resource://" + getPackageName() +R.raw.chopin);
+        URI juri = null;
+        try {
+            juri = new URI(auri.toString());
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        }
+*/
+        Resources res = getResources();
+        AssetManager am = res.getAssets();
+        InputStream inputStream = null;
+        try {
+            inputStream = am.open("test.mid");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        System.out.println("EEEEEERYBOOOOODY");
+
+        try {
+            System.out.println(inputStream.available());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        File file = createFileFromInputStream(inputStream);
+
+        //       pre.doSmth(file);
+
+
+        PianoRollExampleDoubles prd = new PianoRollExampleDoubles();
+        PianoRollExample pr = new PianoRollExample();
+
+        //  pr.doSmth(file);
+
+        Object[] result = new FindMidiSeg(prd.doSmth(file)).findMidiSeg();
+
 
     }
 
@@ -740,6 +796,28 @@ public class MainActivity extends ActionBarActivity {
         }
     }
 
+    private File createFileFromInputStream(InputStream inputStream) {
 
+        try{
+            File f = new File(getCacheDir()+"/test.mid");
+
+            OutputStream outputStream = new FileOutputStream(f);
+
+            byte buffer[] = new byte[1024];
+            int length = 0;
+
+            while((length=inputStream.read(buffer)) > 0) {
+                outputStream.write(buffer, 0, length);
+            }
+
+            outputStream.close();
+            inputStream.close();
+
+            return f;
+        }catch (IOException e) {
+            //Logging exception
+        }
+        return null;
+    }
 }
 
