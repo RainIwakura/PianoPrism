@@ -5,6 +5,7 @@ import android.util.Log;
 import com.android.internal.util.Predicate;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -114,6 +115,18 @@ public class MatrixUtils<T> {
     }
 
 
+
+    public void roundDoubleArr(double[] arr) {
+
+        for (int i = 0; i < arr.length; i++) {
+
+            BigDecimal b = new BigDecimal(arr[i]);
+            b = b.setScale(2, RoundingMode.CEILING);
+
+            arr[i] = b.doubleValue();
+        }
+    }
+
     public Double[] castToDouble(double[] arr){
         Double[] result = new Double[arr.length];
        // int i = 0;
@@ -126,7 +139,7 @@ public class MatrixUtils<T> {
         for (int i = 0; i < arr.length; i++) {
 
             BigDecimal b = new BigDecimal(arr[i]);
-            b = b.setScale(2, BigDecimal.ROUND_UP);
+            b = b.setScale(2, RoundingMode.CEILING);
 
             result[i] = b.doubleValue();
         }
@@ -143,9 +156,9 @@ public class MatrixUtils<T> {
             for (int j = 0; j < arr[0].length; j++) {
 
                 BigDecimal b = new BigDecimal(o[j]);
-                b = b.setScale(2, BigDecimal.ROUND_FLOOR);
+                b = b.setScale(2, RoundingMode.CEILING);
 
-                result[i][j] = (Double) b.doubleValue();
+                result[i][j] = b.doubleValue();
             }
             i++;
         }
@@ -208,6 +221,8 @@ public class MatrixUtils<T> {
     public double[] unique (double[] arr) {
 
 
+        roundDoubleArr(arr);
+
         ArrayList<Double> list = toList(arr);
 
 
@@ -241,6 +256,8 @@ public class MatrixUtils<T> {
 
     public Object[] unique (T[] arr) {
 
+
+       // Double[] darr = castToDouble(arr);
         ArrayList<T> list = toArrayList(arr);
 
         Set<T> set = new LinkedHashSet<>(list);
