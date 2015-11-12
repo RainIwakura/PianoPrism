@@ -71,6 +71,7 @@ public class FindMidiSeg {
                 } else {
                     if (j < segnum - 1) {
                         scrSg[i][j] = onsets_d[k];
+                        k++;
                     } else {
                         scrSg[i][j] = offsets_d[offsets_d.length - 1];
                     }
