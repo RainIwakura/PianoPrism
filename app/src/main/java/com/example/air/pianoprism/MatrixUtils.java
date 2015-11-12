@@ -218,7 +218,7 @@ public class MatrixUtils<T> {
     }
 
 
-    public double[] unique (double[] arr) {
+    public double[] unique (double[] arr, ArrayDeque<Integer> segIdx) {
 
 
         roundDoubleArr(arr);
@@ -228,11 +228,6 @@ public class MatrixUtils<T> {
 
         System.out.println("LIST SIZE: " + list.size());
 
-/*
-        for (int i = 0; i < list.size(); i++) {
-            Log.d("d", "" + list.get(i));
-        }*/
-   //     LinkedHashSet<Double> set = new LinkedHashSet<Double>(list);
 
         TreeSet<Double> set = new TreeSet<>(list);
 
@@ -240,9 +235,22 @@ public class MatrixUtils<T> {
 
 
         Object[] array = set.toArray();
+
         double[] result = new double[array.length];
+
+
+
+
         for (int i = 0; i < array.length; i++) {
             result[i] = (double) array[i];
+            if (!segIdx.equals(null)) {
+                for (int j = i; j < arr.length; j++) {
+                    if (arr[j] == result[i]) {
+                        segIdx.add(j);
+                        break;
+                    }
+                }
+            }
         }
 
 
@@ -251,34 +259,6 @@ public class MatrixUtils<T> {
 
         return result;
     }
-
-
-
-    public Object[] unique (T[] arr) {
-
-
-       // Double[] darr = castToDouble(arr);
-        ArrayList<T> list = toArrayList(arr);
-
-        Set<T> set = new LinkedHashSet<>(list);
-
-        /*T[] result = (T[]) new Object[set.size()];
-
-        for (int i = 0; i < set.size();i++) {
-
-        }
-
-        Iterator it = set.iterator();
-        int i = 0;
-        while(it.hasNext()) {
-            T temp = (T) it.next();
-            result[i] = temp;
-            i++;
-        }*/
-
-        return set.toArray();
-    }
-
 
 
 

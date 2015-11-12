@@ -49,8 +49,11 @@ public class FindMidiSeg {
         dm2 = dm1.copy().assign(dm2, plus);
 
 
-        double[] onsets_d = mu.unique(dm1.copy().toArray());
-        double[] offsets_d = mu.unique(dm2.copy().toArray());
+
+        ArrayDeque<Integer> segIdx = new ArrayDeque<>();
+
+        double[] onsets_d = mu.unique(dm1.copy().toArray(), segIdx);
+        double[] offsets_d = mu.unique(dm2.copy().toArray(), null);
 
         DoubleMatrix1D onsets = new DenseDoubleMatrix1D(onsets_d);
         DoubleMatrix1D offsets = new DenseDoubleMatrix1D(offsets_d);
@@ -163,9 +166,8 @@ public class FindMidiSeg {
               }
         }
 
-
-
-        return new MidiSegObject(scoreMP,scrSg,null);
+        
+        return new MidiSegObject(scoreMP,scrSg,segIdx);
     }
 
 

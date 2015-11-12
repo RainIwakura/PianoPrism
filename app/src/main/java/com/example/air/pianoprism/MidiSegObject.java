@@ -1,17 +1,19 @@
 package com.example.air.pianoprism;
 
+import java.util.ArrayDeque;
+
 /**
  * Created by rednecked_crake on 11/12/15.
  */
 public class MidiSegObject {
     double [][] scoreMP;
     double[][] scoreSeg;
-    int[] segIdx;
+    ArrayDeque<Integer> segIdx;
 
-    public MidiSegObject(double[][] scoreMP, double[][] scoreSeg, int[] segIdx) {
+    public MidiSegObject(double[][] scoreMP, double[][] scoreSeg, ArrayDeque<Integer> segIdx) {
         this.scoreMP = scoreMP;
         this.scoreSeg = scoreSeg;
-        this.segIdx = segIdx;
+        this.setSegIdx(segIdx);
     }
 
     public double[][] getScoreMP() {
@@ -28,5 +30,13 @@ public class MidiSegObject {
 
     public void setScoreSeg(double[][] scoreSeg) {
         this.scoreSeg = scoreSeg;
+    }
+
+    public ArrayDeque<Integer> getSegIdx() {
+        return segIdx;
+    }
+
+    public void setSegIdx(ArrayDeque<Integer> segIdx) {
+        this.segIdx = segIdx;
     }
 }
