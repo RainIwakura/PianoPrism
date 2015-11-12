@@ -43,9 +43,11 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.text.DecimalFormat;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.Objects;
 import java.util.Random;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -368,7 +370,44 @@ public class MainActivity extends ActionBarActivity {
 
         MidiSegObject result = new FindMidiSeg(prd.doSmth(file)).findMidiSeg();
 
+        System.out.println("[");
+        for (int i = 0; i < 4; i++) {
+            for (int j = 0; j < result.scoreMP[0].length; j++) {
+                DecimalFormat df = new DecimalFormat("00.00");
+                System.out.print(df.format(result.scoreMP[i][j]) + " ");
+            }
+            System.out.print("\n");
+        }
+        System.out.println("]\n\n\n");
+        System.out.println("]\n\n\n");
+        System.out.println("]\n\n\n");
 
+
+        for (int i = 0; i < result.scoreSeg.length; i++) {
+            for (int j = 0; j < result.scoreSeg[0].length; j++) {
+                DecimalFormat df = new DecimalFormat("00.00");
+                System.out.print(df.format(result.scoreSeg[i][j]) + " ");
+            }
+            System.out.print("\n");
+
+        }
+
+        System.out.print("\n");
+        System.out.print("\n");
+        System.out.print("\n");
+        System.out.println(result.segIdx.size());
+
+        Iterator<Integer> iter = result.segIdx.iterator();
+        System.out.print("[[");
+        while(iter.hasNext()) {
+            System.out.print("" + iter.next() + " ");
+        }
+        System.out.print("]]\n");
+
+
+        for (int i = 0; i < result.segIdx.size(); i++) {
+            System.out.print((int) result.segIdx.toArray()[i] + " ");
+        }
     }
 
     @Override

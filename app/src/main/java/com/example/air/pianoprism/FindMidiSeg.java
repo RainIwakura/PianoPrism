@@ -55,25 +55,6 @@ public class FindMidiSeg {
         double[] onsets_d = mu.unique(dm1.copy().toArray(), segIdx);
         double[] offsets_d = mu.unique(dm2.copy().toArray(), null);
 
-        DoubleMatrix1D onsets = new DenseDoubleMatrix1D(onsets_d);
-        DoubleMatrix1D offsets = new DenseDoubleMatrix1D(offsets_d);
-
-
-        DenseDoubleMatrix2D onsets_t = mu.transposeOf1D(onsets);
-        DenseDoubleMatrix2D offsets_t = mu.transposeOf1D(offsets);
-
-
-        DenseDoubleMatrix2D scoreSeg = new DenseDoubleMatrix2D(new double[2][onsets_t.columns()]);
-
-
-        IntArrayList list = new IntArrayList(new int[]{1});
-        int[] longIntArr = new int[onsets_t.columns()];
-
-        for (int i = 0; i < onsets_t.columns(); i++) {
-            longIntArr[i] = i;
-        }
-
-        IntArrayList longList = new IntArrayList(longIntArr);
 
 
         int segnum = onsets_d.length;
@@ -166,7 +147,7 @@ public class FindMidiSeg {
               }
         }
 
-        
+
         return new MidiSegObject(scoreMP,scrSg,segIdx);
     }
 
@@ -229,61 +210,6 @@ public class FindMidiSeg {
         }
 
     };
-
-    public class Indices {
-        ArrayDeque<Integer> idx;
-        ArrayDeque<Integer[]> idx_arr;
-        boolean isArr = false;
-
-        Indices(ArrayDeque<Integer> idx) {
-            this.idx = idx;
-        }
-
-        Indices(ArrayDeque<Integer[]> idx_arr, boolean isArr) {
-            this.idx_arr = idx_arr;
-            this.isArr = true;
-        }
-
-        public int length() {
-            if (isArr) {
-                return idx_arr.size();
-            } else
-                return idx.size();
-        }
-
-    }
-
-
-    public double[] castObjectArrTodouble(Object[] arr) {
-        double[] result = new double[arr.length];
-        for (int i = 0; i < arr.length; i++) {
-            result[i] = (double) arr[i];
-        }
-
-        return result;
-    }
-
-    public Double[] castObjectArrToDoubleArr(Object[] arr) {
-        Double[] result = new Double[arr.length];
-        for (int i = 0; i < arr.length; i++) {
-            result[i] = (Double) arr[i];
-        }
-
-        return result;
-    }
-
-    public Double[] fromdoubleToDouble(double[] arr) {
-        Double[] result = new Double[arr.length];
-        for (int i = 0; i < arr.length; i++) {
-            result[i] = (Double) arr[i];
-        }
-
-        return result;
-    }
-
-
-    // public scoreMP(double[][])
-
 
 
 

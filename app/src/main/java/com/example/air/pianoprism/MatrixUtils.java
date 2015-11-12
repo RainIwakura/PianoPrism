@@ -243,7 +243,7 @@ public class MatrixUtils<T> {
 
         for (int i = 0; i < array.length; i++) {
             result[i] = (double) array[i];
-            if (!segIdx.equals(null)) {
+            if (segIdx != null) {
                 for (int j = i; j < arr.length; j++) {
                     if (arr[j] == result[i]) {
                         segIdx.add(j);
