@@ -366,7 +366,7 @@ public class MainActivity extends ActionBarActivity {
 
         //  pr.doSmth(file);
 
-        Object[] result = new FindMidiSeg(prd.doSmth(file)).findMidiSeg();
+        MidiSegObject result = new FindMidiSeg(prd.doSmth(file)).findMidiSeg();
 
 
     }
