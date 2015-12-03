@@ -3,7 +3,7 @@ package com.example.air.pianoprism;
 /**
  * Created by rednecked_crake on 11/12/15.
  */
- public  class CalculateCondProb
+public  class CalculateCondProb
 {
 
 
@@ -11,7 +11,7 @@ package com.example.air.pianoprism;
         double res = returnAngle(midi_chroma, audio_chroma);
         res = Math.exp(-res*res);
 
-        res = res/2.50662827463;
+        res = res/2.50662827463; // divide by sqrt(2*PI)
 
         return res;
     }
