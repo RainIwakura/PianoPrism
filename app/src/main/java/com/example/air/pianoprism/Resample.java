@@ -16,7 +16,6 @@ public class Resample<T> {
     int[] inxs;
 
 
-
     public Resample (double[] wghts) {
         this.weights = Arrays.copyOf(wghts, wghts.length);
 
@@ -203,7 +202,7 @@ public class Resample<T> {
 
 
 
-    
+
 
 
     /*

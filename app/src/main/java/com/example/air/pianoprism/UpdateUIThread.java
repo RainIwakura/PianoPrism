@@ -85,6 +85,11 @@ public class UpdateUIThread extends Thread {
     ///////////////////
 
 
+    short samplesToStore[][];
+    int sampleNumber = 5;
+    int sampleCounter = 0;
+
+
 
 
     UpdateUIThread  (
@@ -145,6 +150,7 @@ public class UpdateUIThread extends Thread {
         ////////////////////////////////////
 
 
+         this.samplesToStore = new short[sampleNumber][bufferSize];
 
 
     }
@@ -169,7 +175,18 @@ public class UpdateUIThread extends Thread {
             j++;
             recorder.read(this.tempBuffer, 0, this.bufferSize);
 
+            ///////
 
+            if (sampleCounter < sampleNumber) {
+                samplesToStore[sampleCounter] = Arrays.copyOf(this.tempBuffer, this.bufferSize);
+                sampleCounter++;
+            }
+            else {
+                sampleCounter = 0;
+                /// call onset detection
+
+            }
+            ////////////////////
             column++;
             column %= column_number;
 

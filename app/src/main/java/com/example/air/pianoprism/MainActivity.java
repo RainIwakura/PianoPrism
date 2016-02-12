@@ -74,7 +74,7 @@ public class MainActivity extends ActionBarActivity {
     private int channelConfig = AudioFormat.CHANNEL_CONFIGURATION_MONO;
     private int audioFormat = AudioFormat.ENCODING_PCM_16BIT;
     //private int bufferSize = AudioRecord.getMinBufferSize(samplingRate, channelConfig, audioFormat);
-    private int bufferSize = 1024;
+    private int bufferSize = 2048;
     private int sampleNumBits = 16;
     private int numChannels = 1;
 

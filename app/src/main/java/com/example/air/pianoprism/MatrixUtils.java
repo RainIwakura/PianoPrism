@@ -13,6 +13,7 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.TreeSet;
 
+import cern.colt.function.DoubleDoubleFunction;
 import cern.colt.matrix.DoubleMatrix1D;
 import cern.colt.matrix.impl.DenseDoubleMatrix2D;
 
@@ -310,5 +311,6 @@ public class MatrixUtils<T> {
         }
         return toWrite.toString();
     }
+
 
 }
