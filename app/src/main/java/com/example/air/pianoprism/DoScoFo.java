@@ -109,8 +109,39 @@ public class DoScoFo {
 
         int[] F = {1, frameHopMin, 0, 1};
 
-        
+        double[][] scoreSeg = result.scoreSeg;
 
+
+        // repmat onsetMat
+        double[][] onsetMat = new double[parNum][scoreSeg[0].length];
+
+        for (int i = 0; i < parNum; i++) {
+            for (int j = 0; j < scoreSeg[0].length; j++) {
+                onsetMat[i][j] = scoreSeg[0][j];
+            }
+        }
+
+
+        // repmat offsetMat
+
+        double[][] offsetMat = new double[parNum][scoreSeg[0].length];
+
+        for (int i = 0; i < parNum; i++) {
+            for (int j = 0; j < scoreSeg[0].length; j++) {
+                onsetMat[i][j] = scoreSeg[1][j];
+            }
+        }
+
+
+
+        int bStart = 0;
+
+        for (int i =  0;  i < frameNum; i++) {
+            int startp = 1 + (i - 1)*frameHop;
+            int endp   = startp + frameLen - 1;
+
+
+        }
 
     }
 
