@@ -2,6 +2,7 @@ package com.example.air.pianoprism;
 
 
 import java.util.Arrays;
+import java.util.Random;
 
 import cern.colt.function.DoubleDoubleFunction;
 import cern.colt.function.DoubleFunction;
@@ -31,7 +32,8 @@ public class DoScoFo {
     int frameLen = 2048;
     int frameHop = 441;
     int zpf = 4;
-    int fftLen = (int) Math.pow(2, frameLen * zpf);
+    int fftLen = (int) Math.pow(2, 32 - Integer.numberOfLeadingZeros(frameLen*zpf - 1));
+
     double[] win = hammingWin(fftLen, "periodic");
     //////////////////
 
@@ -50,10 +52,13 @@ public class DoScoFo {
 
 
     /*
-     * frameNum - calculated from user inputted time of practice
+     * frameNum - calculated from user-inputted time of practice
      */
 
-    public DoScoFo (double[][] nmat, int frameNum, int fs) {
+    public DoScoFo (double[][] nmat, int frameNum, int fs, double[] sample) {
+
+
+        System.out.println("FFT LEN: " + fftLen);
         DenseDoubleMatrix2D nmatDM = new DenseDoubleMatrix2D(nmat);
         DoubleMatrix1D col1 = nmatDM.viewColumn(1);
         DoubleMatrix1D col2 = nmatDM.viewColumn(2);
@@ -66,7 +71,7 @@ public class DoScoFo {
         col1.assign(round);
         col1.assign(hund, div);
 
-
+        //  round(nmat (:, 2)*100)/100
         col2.assign(hund, mult);
         col2.assign(round);
         col2.assign(hund, div);
@@ -92,7 +97,7 @@ public class DoScoFo {
 
         int scoreSegNum = result.scoreSeg[0].length;
 
-
+        // allScoreIdx = 1:scoreSegNum
         Integer[] allScoreIdx = new Integer[scoreSegNum];
         for (int i = 0; i < scoreSegNum; i++) {
             allScoreIdx[i] = i;
@@ -100,6 +105,7 @@ public class DoScoFo {
 
         double timeLen = 120 * 1000;
 
+        /// xs = zeroes (2, frameNum + 1)
         double[][] xs = new double[2][frameNum+1];
         Arrays.fill(xs[0], 0);
         Arrays.fill(xs[1], 0);
@@ -136,12 +142,74 @@ public class DoScoFo {
 
         int bStart = 0;
 
-        for (int i =  0;  i < frameNum; i++) {
+     /*   for (int i =  0;  i < frameNum; i++) {
             int startp = 1 + (i - 1)*frameHop;
             int endp   = startp + frameLen - 1;
+            double[] data = new double[endp - startp];
+            double[][] particles = new double[2][parNum];
+            double[] x_init =  {minBeat, scoreTempo};;
+
+            int jj = 0;
+            for (int j = startp; j < endp; j++) {
+                data[jj] = sample[j]*win[jj];
+            }
+
+            if (bStart == 0) {
+                if (mean(data) < rms_Th) {
+                    continue;
+                } else {
+                    bStart = 1;
 
 
-        }
+                    for (int k = 0; k < xs.length; k++) {
+                        xs[k][i] = x_init[k]; // ??????????????????
+                    }
+
+
+                    for (int k = 0; k < parNum; k++) {
+                        particles[1][k] = minBeat;
+                    }
+
+                    for (int k = 0; k < parNum; k++) {
+                        Random rand = new Random ();
+                        particles[2][k] = randInt(1, frameNum) * (maxBPM - minBPM) + minBPM ;
+                    }
+
+
+                }
+
+            }
+
+            double[] fx = new double[parNum];
+
+            for (int k = 0; k < parNum; k++) {
+                fx[k] = 0;
+            }
+
+            double[][] ppMat = new double[particles[0].length][scoreSegNum];
+
+            for (int j = 0; j < scoreSegNum; j++) {
+                for (int k = 0; k < particles[0].length; k++) {
+                    ppMat[k][j] = particles[0][k];
+                }
+            }
+
+            boolean[][] idx = new boolean[ppMat.length][ppMat[0].length];
+
+            for (int k = 0; k < idx.length; k++) {
+                for (int kk = 0;  kk < idx[0].length; kk++) {
+                    idx[k][kk] = ppMat[k][kk] >= onsetMat[k][kk] & ppMat[k][kk] <= offsetMat[k][kk];
+                }
+            }
+
+            for (int k = 0; k < parNum; k++) {
+
+            }
+
+
+
+
+        }*/
 
     }
 
@@ -279,4 +347,38 @@ public class DoScoFo {
             return v;
         }
     };
+
+    DoubleDoubleFunction sum = new DoubleDoubleFunction() {
+        @Override
+        public double apply(double v, double v1) {
+            return v + v1;
+        }
+
+    };
+
+    public double mean (double[] in) {
+        double res = 0;
+
+        for (int i = 0; i < in.length; i++) {
+            res += in[i];
+        }
+
+        res /= in.length;
+
+        return res;
+    }
+
+    public static int randInt(int min, int max) {
+
+        // Usually this can be a field rather than a method variable
+        Random rand = new Random();
+
+        // nextInt is normally exclusive of the top value,
+        // so add 1 to make it inclusive
+        int randomNum = rand.nextInt((max - min) + 1) + min;
+
+        return randomNum;
+    }
+
+
 }

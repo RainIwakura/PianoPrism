@@ -370,6 +370,10 @@ public class MainActivity extends ActionBarActivity {
 
         MidiSegObject result = new FindMidiSeg(prd.doSmth(file)).findMidiSeg();
 
+        DoScoFo dsf = new DoScoFo(prd.doSmth(file), 1000, samplingRate, new double[this.getBufferSize()]);
+
+
+
         System.out.println("[");
         for (int i = 0; i < 4; i++) {
             for (int j = 0; j < result.scoreMP[0].length; j++) {
@@ -410,12 +414,22 @@ public class MainActivity extends ActionBarActivity {
         }
     }
 
+
+
+
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
     }
+
+
+
+
+
+
 
     @Override
 
@@ -433,9 +447,18 @@ public class MainActivity extends ActionBarActivity {
         return super.onOptionsItemSelected(item);
     }
 
+
+
+
+
     public void updateUImethod()  {
         new UpdateGraphTask().execute();
     }
+
+
+
+
+
 
 
     @Override
@@ -443,6 +466,9 @@ public class MainActivity extends ActionBarActivity {
     public void onPause() {
         super.onPause();
     }
+
+
+
 
 
     @Override
@@ -466,6 +492,9 @@ public class MainActivity extends ActionBarActivity {
             stopPlaying();
         }
     }
+
+
+
 
     private void startPlaying() {
       /*  mPlayer = new MediaPlayer();
@@ -857,6 +886,11 @@ public class MainActivity extends ActionBarActivity {
             //Logging exception
         }
         return null;
+    }
+
+
+    public int getBufferSize() {
+        return this.bufferSize;
     }
 }
 
