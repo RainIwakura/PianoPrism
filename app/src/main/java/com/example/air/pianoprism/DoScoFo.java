@@ -3,6 +3,8 @@ package com.example.air.pianoprism;
 
 import java.util.Arrays;
 import java.util.Random;
+import java.util.ArrayDeque;
+import java.util.Iterator;
 
 import cern.colt.function.DoubleDoubleFunction;
 import cern.colt.function.DoubleFunction;
@@ -93,9 +95,9 @@ public class DoScoFo {
         double sigma_v = scoreTempo/4;
 
         FindMidiSeg fms = new FindMidiSeg(nmat);
-        MidiSegObject result = fms.findMidiSeg();
+        MidiSegObject midiSeg = fms.findMidiSeg();
 
-        int scoreSegNum = result.scoreSeg[0].length;
+        int scoreSegNum = midiSeg.scoreSeg[0].length;
 
         // allScoreIdx = 1:scoreSegNum
         Integer[] allScoreIdx = new Integer[scoreSegNum];
@@ -115,8 +117,8 @@ public class DoScoFo {
 
         int[] F = {1, frameHopMin, 0, 1};
 
-        double[][] scoreSeg = result.scoreSeg;
-
+        double[][] scoreSeg = midiSeg.scoreSeg;
+        double[][] scoreMP =  midiSeg.scoreMP;
 
         // repmat onsetMat
         double[][] onsetMat = new double[parNum][scoreSeg[0].length];
@@ -155,7 +157,7 @@ public class DoScoFo {
             }
 
             if (bStart == 0) {
-                if (mean(data) < rms_Th) {
+                if (mean(elementWisePower(data, 2)) < rms_Th) {
                     continue;
                 } else {
                     bStart = 1;
@@ -181,7 +183,7 @@ public class DoScoFo {
             }
 
             //     fx = zeros(1, parNum);                      % corresponding score segment of each particle position
-            double[] fx = new double[parNum];
+            int[] fx = new int[parNum];
 
             for (int k = 0; k < parNum; k++) {
                 fx[k] = 0;
@@ -220,7 +222,35 @@ public class DoScoFo {
 
             MatrixUtils mu = new MatrixUtils();
 
-            
+            ArrayDeque<Integer> idx1 = new ArrayDeque<Integer>();
+            int[]               idx2 = new int[fx.length];
+            int[]               ufx  = mu.unique(fx, idx1, idx2);
+
+            int uParNum = idx1.size();
+
+           ///
+            double[][] unotes = new double[scoreMP.length][uParNum];
+
+            Iterator<Integer> idx1_i = idx1.iterator();
+
+            for (int k = 0; k < scoreMP.length; k++) {
+                int k1 = 0;
+                while (idx1_i.hasNext()) {
+                    unotes[k][k1] =  idx1_i.next();
+                    k1++;
+                }
+            }
+
+            /////
+
+            if (!mu.any(mu._notBool(mu.any(unotes, 1)))
+                    &&
+                (mean(elementWisePower(data, 2)) < rms_Th)
+               )
+            {
+                
+            }
+
 
 
 
@@ -393,6 +423,15 @@ public class DoScoFo {
         int randomNum = rand.nextInt((max - min) + 1) + min;
 
         return randomNum;
+    }
+
+
+    public double[] elementWisePower(double[] arr, int n) {
+        double[] res = new double[arr.length];
+        for (int i = 0; i < arr.length; i++) {
+            res[i] = Math.pow(arr[i], n);
+        }
+        return res;
     }
 
 

@@ -12,8 +12,10 @@ import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.HashMap;
 
 import cern.colt.function.DoubleDoubleFunction;
+import cern.colt.list.BooleanArrayList;
 import cern.colt.matrix.DoubleMatrix1D;
 import cern.colt.matrix.impl.DenseDoubleMatrix2D;
 
@@ -275,7 +277,7 @@ public class MatrixUtils<T> {
 
 
 
-    public int[] unique (int[] arr, ArrayDeque<Integer> segIdx) {
+    public int[] unique (int[] arr, ArrayDeque<Integer> segIdx, int[] ic) {
 
 
 
@@ -296,7 +298,7 @@ public class MatrixUtils<T> {
 
 
 
-
+        // arr(segIdx) = result
         for (int i = 0; i < array.length; i++) {
             result[i] = (int) array[i];
             if (segIdx != null) {
@@ -305,6 +307,16 @@ public class MatrixUtils<T> {
                         segIdx.add(j);
                         break;
                     }
+                }
+            }
+        }
+
+
+        // result(ic) = arr
+        for (int i = 0; i < arr.length; i++) {
+            for (int j = 0; j < result.length; j++) {
+                if (arr[i] == result[j]) {
+                    ic[i] = j;
                 }
             }
         }
@@ -362,4 +374,71 @@ public class MatrixUtils<T> {
     }
 
 
+
+    public boolean[] any(double[][] arr, int dim) {
+        boolean[] res;
+
+
+        if (dim == 1) {
+            res = new boolean[arr.length];
+            Arrays.fill(res, false);
+            for (int i = 0; i < arr.length; i++) {
+                for (int j = 0; j < arr[0].length; j++) {
+                    if (arr[i][j] != 0) {
+                        res[i] = true;
+                        break;
+                    }
+                }
+            }
+        } else {
+            res = new boolean[arr[0].length];
+            Arrays.fill(res, false);
+            for (int j = 0; j < arr[0].length; j++) {
+                for (int i = 0; i < arr.length; i++) {
+                    if (arr[i][j] != 0) {
+                        res[j] = true;
+                        break;
+                    }
+                }
+            }
+        }
+
+        return res;
+    }
+
+
+    public boolean any(double[] arr) {
+        boolean res = false;
+
+        for (int i = 0;  i < arr.length; i++) {
+            if (arr[i] != 0) {
+                res = true;
+                break;
+            }
+        }
+
+        return res;
+    }
+
+    public boolean any(boolean[] arr) {
+        boolean res = false;
+
+        for (int i = 0;  i < arr.length; i++) {
+            if (arr[i]) {
+                res = true;
+                break;
+            }
+        }
+
+        return res;
+    }
+
+
+    public boolean[] _notBool (boolean[] arr) {
+        boolean[] res = new boolean[arr.length];
+        for (int i = 0; i < arr.length; i++) {
+            res[i] = !arr[i];
+        }
+        return res;
+    }
 }
