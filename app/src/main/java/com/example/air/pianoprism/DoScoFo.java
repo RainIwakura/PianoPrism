@@ -142,7 +142,7 @@ public class DoScoFo {
 
         int bStart = 0;
 
-     /*   for (int i =  0;  i < frameNum; i++) {
+        for (int i =  0;  i < frameNum; i++) {
             int startp = 1 + (i - 1)*frameHop;
             int endp   = startp + frameLen - 1;
             double[] data = new double[endp - startp];
@@ -180,11 +180,15 @@ public class DoScoFo {
 
             }
 
+            //     fx = zeros(1, parNum);                      % corresponding score segment of each particle position
             double[] fx = new double[parNum];
 
             for (int k = 0; k < parNum; k++) {
                 fx[k] = 0;
             }
+
+
+            //     ppMat = repmat(px(1,:)', 1, scoreSegNum);            % particle position matrix
 
             double[][] ppMat = new double[particles[0].length][scoreSegNum];
 
@@ -194,22 +198,33 @@ public class DoScoFo {
                 }
             }
 
-            boolean[][] idx = new boolean[ppMat.length][ppMat[0].length];
+            // idx = ppMat>=onsetMat & ppMat<=offsetMat;                       % score indices of each particle
+
+            int[] idx = new int[ppMat.length];
 
             for (int k = 0; k < idx.length; k++) {
-                for (int kk = 0;  kk < idx[0].length; kk++) {
-                    idx[k][kk] = ppMat[k][kk] >= onsetMat[k][kk] & ppMat[k][kk] <= offsetMat[k][kk];
+                for (int kk = 0;  kk < ppMat[0].length; kk++) {
+                    idx[k] = ppMat[k][kk] >= onsetMat[k][kk] & ppMat[k][kk] <= offsetMat[k][kk] ? kk : -1;
                 }
             }
 
-            for (int k = 0; k < parNum; k++) {
+            //    for i = 1:parNum
+            //             fx(i) = allScoreSegIdx(idx(i,:));
+            //    end
 
+            for (int k1 = 0; k1 < parNum; k1++) {
+                if (idx[k1] >= 0) {
+                    fx[k1] = allScoreIdx[idx[k1]];
+                }
             }
 
+            MatrixUtils mu = new MatrixUtils();
+
+            
 
 
 
-        }*/
+        }
 
     }
 

@@ -866,7 +866,7 @@ public class MainActivity extends ActionBarActivity {
 
     private File createFileFromInputStream(InputStream inputStream) {
 
-        try{
+        try {
             File f = new File(getCacheDir()+"/test.mid");
 
             OutputStream outputStream = new FileOutputStream(f);
@@ -882,7 +882,7 @@ public class MainActivity extends ActionBarActivity {
             inputStream.close();
 
             return f;
-        }catch (IOException e) {
+        } catch (IOException e) {
             //Logging exception
         }
         return null;

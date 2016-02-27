@@ -219,6 +219,17 @@ public class MatrixUtils<T> {
     }
 
 
+
+    public ArrayList<Integer> toList (int[] arr) {
+        ArrayList<Integer> res = new ArrayList<>();
+
+        for (int i = 0; i < arr.length; i++) {
+            res.add(arr[i]);
+        }
+
+        return res;
+    }
+
     public double[] unique (double[] arr, ArrayDeque<Integer> segIdx) {
 
 
@@ -262,6 +273,44 @@ public class MatrixUtils<T> {
     }
 
 
+
+
+    public int[] unique (int[] arr, ArrayDeque<Integer> segIdx) {
+
+
+
+        ArrayList<Integer> list = toList(arr);
+
+
+        System.out.println("LIST SIZE: " + list.size());
+
+
+        TreeSet<Integer> set = new TreeSet<>(list);
+
+        Log.d("set", "len: " + set.size());
+
+
+        Object[] array = set.toArray();
+
+        int[] result = new int[array.length];
+
+
+
+
+        for (int i = 0; i < array.length; i++) {
+            result[i] = (int) array[i];
+            if (segIdx != null) {
+                for (int j = i; j < arr.length; j++) {
+                    if (arr[j] == result[i]) {
+                        segIdx.add(j);
+                        break;
+                    }
+                }
+            }
+        }
+
+        return result;
+    }
 
 //    DoubleDoubleFunction identity = new DoubleDoubleFunction() {
  //       public double apply(double a, double b) { return b; }
