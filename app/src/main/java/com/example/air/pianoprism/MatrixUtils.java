@@ -375,7 +375,7 @@ public class MatrixUtils<T> {
 
 
 
-    public boolean[] any(double[][] arr, int dim) {
+    public static boolean[] any(double[][] arr, int dim) {
         boolean[] res;
 
 
@@ -407,7 +407,7 @@ public class MatrixUtils<T> {
     }
 
 
-    public boolean any(double[] arr) {
+    public static boolean any(double[] arr) {
         boolean res = false;
 
         for (int i = 0;  i < arr.length; i++) {
@@ -420,7 +420,7 @@ public class MatrixUtils<T> {
         return res;
     }
 
-    public boolean any(boolean[] arr) {
+    public static boolean any(boolean[] arr) {
         boolean res = false;
 
         for (int i = 0;  i < arr.length; i++) {
@@ -434,11 +434,102 @@ public class MatrixUtils<T> {
     }
 
 
-    public boolean[] _notBool (boolean[] arr) {
+    public static boolean[] _notBool (boolean[] arr) {
         boolean[] res = new boolean[arr.length];
         for (int i = 0; i < arr.length; i++) {
             res[i] = !arr[i];
         }
+        return res;
+    }
+
+
+    public static int[] range(int n1, int n2) {
+        int[] res = new int[n2 - n1];
+
+        for (int i = n1; i < n2; n1++) {
+            res[i] = i;
+        }
+
+        return res;
+    }
+
+
+    public static double[] log_elemWise(double[] in) {
+        double[] out = new double[in.length];
+
+        for (int i = 0; i < in.length; i++) {
+            out[i] = Math.log(in[i]);
+        }
+        return out;
+    }
+
+
+    public static double[] mul_elemWise(double[] in, double factor) {
+        double[] out = new double[in.length];
+
+        for (int i = 0; i < in.length; i++) {
+            out[i] *= factor;
+        }
+        return out;
+    }
+
+
+    public static double[] mul_elemWise(int[] in, double factor) {
+        double[] out = new double[in.length];
+
+        for (int i = 0; i < in.length; i++) {
+            out[i] *= factor;
+        }
+        return out;
+    }
+
+
+    public static int[] mul_elemWise(int[] in, int factor) {
+        int[] out = new int[in.length];
+
+        for (int i = 0; i < in.length; i++) {
+            out[i] *= factor;
+        }
+        return out;
+    }
+
+    /*
+     *
+     * x - dim 1
+     * y - dim 2
+     */
+    public static double[][] repmat(double[][] in,  int numToRepeatX, int numToRepeatY) {
+        int inX = in.length;
+        int inY = in[0].length;
+        int dimX = inX*numToRepeatX;
+        int dimY = inY*numToRepeatY;
+        double[][] res = new double[dimX][dimY];
+
+        for (int i = 0; i < dimX; i++ ) {
+            for (int j = 0; j < dimY; j++) {
+                res[i][j] = in[i % inX][j % inY];
+            }
+        }
+
+        return res;
+    }
+
+
+    /// TODO: check for errors
+
+    public static double[][] repmat(double[] in,  int numToRepeatX, int numToRepeatY) {
+        int inX = in.length;
+        int inY = 1;
+        int dimX = inX*numToRepeatX;
+        int dimY = 1* numToRepeatY;
+        double[][] res = new double[dimX][dimY];
+
+        for (int i = 0; i < dimX; i++ ) {
+            for (int j = 0; j < dimY; j++) {
+                res[i][j] = in[i % inX];
+            }
+        }
+
         return res;
     }
 }

@@ -1,6 +1,8 @@
 package com.example.air.pianoprism;
 
 
+import org.jtransforms.fft.DoubleFFT_1D;
+
 import java.util.Arrays;
 import java.util.Random;
 import java.util.ArrayDeque;
@@ -12,8 +14,22 @@ import cern.colt.matrix.DoubleMatrix1D;
 import cern.colt.matrix.impl.DenseDoubleMatrix1D;
 import cern.colt.matrix.impl.DenseDoubleMatrix2D;
 
+
+
+
+import static com.example.air.pianoprism.MatrixUtils._notBool;
+import static com.example.air.pianoprism.MatrixUtils.any;
+import static com.example.air.pianoprism.MatrixUtils.any;
+import static com.example.air.pianoprism.MatrixUtils.log_elemWise;
+import static com.example.air.pianoprism.MatrixUtils.mul_elemWise;
+import static com.example.air.pianoprism.MatrixUtils.mul_elemWise;
+import static com.example.air.pianoprism.MatrixUtils.mul_elemWise;
+import static com.example.air.pianoprism.MatrixUtils.range;
+
+
 /**
  * Created by rednecked_crake on 2/6/16.
+ *  TODO: GOTTA CHECK ALL INDICES
  */
 public class DoScoFo {
 
@@ -144,6 +160,9 @@ public class DoScoFo {
 
         int bStart = 0;
 
+        double[] chromaAF;
+        double chromaAFEnergy;
+
         for (int i =  0;  i < frameNum; i++) {
             int startp = 1 + (i - 1)*frameHop;
             int endp   = startp + frameLen - 1;
@@ -157,7 +176,7 @@ public class DoScoFo {
             }
 
             if (bStart == 0) {
-                if (mean(elementWisePower(data, 2)) < rms_Th) {
+                if (mean(power_elemWise(data, 2)) < rms_Th) {
                     continue;
                 } else {
                     bStart = 1;
@@ -241,15 +260,60 @@ public class DoScoFo {
                 }
             }
 
-            /////
+            ///// _notBool simply elementwise '!' for array of bools
+            //// any - return true if array contains non-zero element
+            /// any for 2d array, same but returns true/false for rows/columns (dim: 1/2)
 
-            if (!mu.any(mu._notBool(mu.any(unotes, 1)))
+            if (!any(_notBool(any(unotes, 1)))
                     &&
-                (mean(elementWisePower(data, 2)) < rms_Th)
+                (mean(power_elemWise(data, 2)) < rms_Th)
                )
             {
-                
+
+                // xs(:, frameNum + 1) = xs(:, frameNum)
+                for (int k = 0; k < xs.length; k++) {
+                    xs[i][frameNum + 1] = xs[i][frameNum];
+                }
+
+                for (int k = 0; k < particles[0].length; k++) {
+                    particles[0][k] = particles[0][k] + 0.01*randInt(1, parNum);
+                }
+
+                for (int k = 0; k < particles[0].length; k++) {
+
+                    if (particles[0][k] < minBeat) {
+                        particles[0][k] = minBeat;
+                    } else if (particles[0][k] > maxBeat) {
+                        particles[0][k] = maxBeat;
+                    }
+                 }
+
+                continue;
+
+            } else if (mean(power_elemWise(data, 2)) < rms_Th) {
+                chromaAF = new double[nbin];
+                chromaAFEnergy = 0;
+            } else {
+
+                int fft_len = sample.length;
+                ///// TO BE CHANGED TO FFT TASK
+                DoubleFFT_1D fft = new DoubleFFT_1D(fft_len); // class that performs FFT - library JTransforms
+                double [] spec = new double[sample.length];
+                System.arraycopy(data, 0, spec, 0, sample.length);
+
+                fft.realForward(spec, fft_len);
+
+                //////
+
+
+
+
+
+
             }
+
+
+
 
 
 
@@ -426,13 +490,56 @@ public class DoScoFo {
     }
 
 
-    public double[] elementWisePower(double[] arr, int n) {
+    public double[] power_elemWise(double[] arr, int n) {
         double[] res = new double[arr.length];
         for (int i = 0; i < arr.length; i++) {
             res[i] = Math.pow(arr[i], n);
         }
         return res;
     }
+
+    /*
+        * Adapted from code by Dan Ellis, LabROSA, Columbia EE
+     */
+
+    public double[] fft2chromaX(int fftLen, int nbin, int fs, double A440, double f_ctrl_log, double f_std) {
+        double[] wts = new double[fftLen];
+
+
+        int[] freqRange = range(1,fftLen-1); // temp container for frequencies
+        double factor = 1/(fftLen*fs);
+        double[] frequencies = mul_elemWise(freqRange,factor);
+        double[] fftFrqBinsTemp  = mul_elemWise(hertz2octaves(frequencies, A440), nbin);
+
+        double[] fftFrqBins = new double[fftFrqBinsTemp.length + 1];
+        System.arraycopy(fftFrqBinsTemp, 0, fftFrqBins, 1, fftFrqBinsTemp.length);
+        fftFrqBins[0] = fftFrqBins[1] - 1.5*nbin;
+
+
+
+
+        return wts;
+    }
+
+
+    public double[] hertz2octaves(double[] frequencies, double A440) {
+
+        double[] res = new double[frequencies.length];
+        System.arraycopy(frequencies, 0, res, 0, frequencies.length);
+        double div = A440/16;
+        for (int i = 0; i < frequencies.length; i++) {
+            res[i] /= div;
+        }
+
+        res = log_elemWise(frequencies);
+
+        for (int i = 0; i < frequencies.length; i++) {
+            res[i] /= Math.log(2);
+        }
+
+        return res;
+    }
+
 
 
 }
