@@ -10,6 +10,7 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
+import java.util.Random;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.HashMap;
@@ -444,10 +445,12 @@ public class MatrixUtils<T> {
 
 
     public static int[] range(int n1, int n2) {
-        int[] res = new int[n2 - n1];
+        int[] res = new int[n2 - n1 + 1];
+        int j = 0;
 
-        for (int i = n1; i < n2; n1++) {
-            res[i] = i;
+        for (int i = n1; i <= n2; i++) {
+            res[j] = i;
+            j++;
         }
 
         return res;
@@ -468,17 +471,17 @@ public class MatrixUtils<T> {
         double[] out = new double[in.length];
 
         for (int i = 0; i < in.length; i++) {
-            out[i] *= factor;
+            out[i] = in[i]*factor;
         }
         return out;
     }
 
 
-    public static double[] mul_elemWise(int[] in, double factor) {
+    public static double[] mul_elemWiseIntToDouble(int[] in, double factor) {
         double[] out = new double[in.length];
 
         for (int i = 0; i < in.length; i++) {
-            out[i] *= factor;
+            out[i] = in[i]*factor;
         }
         return out;
     }
@@ -488,7 +491,7 @@ public class MatrixUtils<T> {
         int[] out = new int[in.length];
 
         for (int i = 0; i < in.length; i++) {
-            out[i] *= factor;
+            out[i] = in[i]*factor;
         }
         return out;
     }
@@ -515,21 +518,83 @@ public class MatrixUtils<T> {
     }
 
 
-    /// TODO: check for errors
-
     public static double[][] repmat(double[] in,  int numToRepeatX, int numToRepeatY) {
-        int inX = in.length;
-        int inY = 1;
+        int inX = 1;
+        int inY = in.length;
         int dimX = inX*numToRepeatX;
-        int dimY = 1* numToRepeatY;
+        int dimY = inY* numToRepeatY;
         double[][] res = new double[dimX][dimY];
 
         for (int i = 0; i < dimX; i++ ) {
             for (int j = 0; j < dimY; j++) {
-                res[i][j] = in[i % inX];
+                res[i][j] = in[j % inY];
             }
         }
 
+        return res;
+    }
+
+
+
+    public static int randInt(int min, int max) {
+
+        // Usually this can be a field rather than a method variable
+        Random rand = new Random();
+
+        // nextInt is normally exclusive of the top value,
+        // so add 1 to make it inclusive
+        int randomNum = rand.nextInt((max - min) + 1) + min;
+
+        return randomNum;
+    }
+
+/// TO TEST
+    public static double[] power_elemWise(double[] arr, int n) {
+        double[] res = new double[arr.length];
+        for (int i = 0; i < arr.length; i++) {
+            res[i] = Math.pow(arr[i], n);
+        }
+        return res;
+    }
+
+
+    public static double mean (double[] in) {
+        double res = 0;
+
+        for (int i = 0; i < in.length; i++) {
+            res += in[i];
+        }
+
+        res /= in.length;
+
+        return res;
+    }
+
+
+
+
+    public static double[] hammingWin(int fftLen, String type) {
+        double[] res = new double[fftLen];
+        switch(type) {
+            case "periodic": {
+                int  n = fftLen + 1;
+                double[] resTemp = new double[n];
+                for(int i = 0; i < n; i++){
+                    resTemp[i] = (float) (( 0.53836 - ( 0.46164 * Math.cos( 2*Math.PI * (double)i  / (double)( n - 1 ) ) ) ) );
+                }
+
+                for (int i = 0; i < fftLen; i++) {
+                    res[i] = resTemp[i];
+                }
+            }
+            case "none": {
+                for(int i = 0; i < fftLen; i++){
+                    res[i] = (float) (( 0.53836 - ( 0.46164 * Math.cos( 2*Math.PI * (double)i  / (double)( fftLen - 1 ) ) ) ) );
+                }
+
+            }
+
+        }
         return res;
     }
 }

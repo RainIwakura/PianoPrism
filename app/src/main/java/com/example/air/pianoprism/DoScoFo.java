@@ -24,7 +24,14 @@ import static com.example.air.pianoprism.MatrixUtils.log_elemWise;
 import static com.example.air.pianoprism.MatrixUtils.mul_elemWise;
 import static com.example.air.pianoprism.MatrixUtils.mul_elemWise;
 import static com.example.air.pianoprism.MatrixUtils.mul_elemWise;
+import static com.example.air.pianoprism.MatrixUtils.mul_elemWiseIntToDouble;
 import static com.example.air.pianoprism.MatrixUtils.range;
+import static com.example.air.pianoprism.MatrixUtils.power_elemWise;
+import static com.example.air.pianoprism.MatrixUtils.randInt;
+import static com.example.air.pianoprism.MatrixUtils.mean;
+import static com.example.air.pianoprism.MatrixUtils.hammingWin;
+
+
 
 
 /**
@@ -326,31 +333,6 @@ public class DoScoFo {
 
 
 
-    public double[] hammingWin(int fftLen, String type) {
-        double[] res = new double[fftLen];
-        switch(type) {
-            case "periodic": {
-                int  n = fftLen + 1;
-                double[] resTemp = new double[n];
-                for(int i = 0; i < n; i++){
-                    resTemp[i] = (float) (( 0.53836 - ( 0.46164 * Math.cos( 2*Math.PI * (double)i  / (double)( n - 1 ) ) ) ) );
-                }
-
-                for (int i = 0; i < fftLen; i++) {
-                    res[i] = resTemp[i];
-                }
-            }
-            case "none": {
-                for(int i = 0; i < fftLen; i++){
-                    res[i] = (float) (( 0.53836 - ( 0.46164 * Math.cos( 2*Math.PI * (double)i  / (double)( fftLen - 1 ) ) ) ) );
-                }
-
-            }
-
-        }
-        return res;
-    }
-
 
 
     DoubleDoubleFunction plus = new DoubleDoubleFunction() {
@@ -465,38 +447,7 @@ public class DoScoFo {
 
     };
 
-    public double mean (double[] in) {
-        double res = 0;
 
-        for (int i = 0; i < in.length; i++) {
-            res += in[i];
-        }
-
-        res /= in.length;
-
-        return res;
-    }
-
-    public static int randInt(int min, int max) {
-
-        // Usually this can be a field rather than a method variable
-        Random rand = new Random();
-
-        // nextInt is normally exclusive of the top value,
-        // so add 1 to make it inclusive
-        int randomNum = rand.nextInt((max - min) + 1) + min;
-
-        return randomNum;
-    }
-
-
-    public double[] power_elemWise(double[] arr, int n) {
-        double[] res = new double[arr.length];
-        for (int i = 0; i < arr.length; i++) {
-            res[i] = Math.pow(arr[i], n);
-        }
-        return res;
-    }
 
     /*
         * Adapted from code by Dan Ellis, LabROSA, Columbia EE
@@ -508,7 +459,7 @@ public class DoScoFo {
 
         int[] freqRange = range(1,fftLen-1); // temp container for frequencies
         double factor = 1/(fftLen*fs);
-        double[] frequencies = mul_elemWise(freqRange,factor);
+        double[] frequencies = mul_elemWiseIntToDouble(freqRange, factor);
         double[] fftFrqBinsTemp  = mul_elemWise(hertz2octaves(frequencies, A440), nbin);
 
         double[] fftFrqBins = new double[fftFrqBinsTemp.length + 1];
