@@ -21,6 +21,7 @@ import static com.example.air.pianoprism.MatrixUtils._notBool;
 import static com.example.air.pianoprism.MatrixUtils.any;
 import static com.example.air.pianoprism.MatrixUtils.any;
 import static com.example.air.pianoprism.MatrixUtils.log_elemWise;
+import static com.example.air.pianoprism.MatrixUtils.minusMatrix;
 import static com.example.air.pianoprism.MatrixUtils.mul_elemWise;
 import static com.example.air.pianoprism.MatrixUtils.mul_elemWise;
 import static com.example.air.pianoprism.MatrixUtils.mul_elemWise;
@@ -30,8 +31,9 @@ import static com.example.air.pianoprism.MatrixUtils.power_elemWise;
 import static com.example.air.pianoprism.MatrixUtils.randInt;
 import static com.example.air.pianoprism.MatrixUtils.mean;
 import static com.example.air.pianoprism.MatrixUtils.hammingWin;
-
-
+import static com.example.air.pianoprism.MatrixUtils.repmat;
+import static com.example.air.pianoprism.MatrixUtils.toDoubleArray;
+import static com.example.air.pianoprism.MatrixUtils.transpose;
 
 
 /**
@@ -170,12 +172,12 @@ public class DoScoFo {
         double[] chromaAF;
         double chromaAFEnergy;
 
-        for (int i =  0;  i < frameNum; i++) {
-            int startp = 1 + (i - 1)*frameHop;
-            int endp   = startp + frameLen - 1;
-            double[] data = new double[endp - startp];
+/*        for (int i =  0;  i < frameNum; i++) {
+            int startp           = 1 + (i - 1)*frameHop;
+            int endp             = startp + frameLen - 1;
+            double[] data        = new double[endp - startp];
             double[][] particles = new double[2][parNum];
-            double[] x_init =  {minBeat, scoreTempo};;
+            double[] x_init      =  {minBeat, scoreTempo};;
 
             int jj = 0;
             for (int j = startp; j < endp; j++) {
@@ -325,7 +327,7 @@ public class DoScoFo {
 
 
 
-        }
+        }*/
 
     }
 
@@ -466,7 +468,15 @@ public class DoScoFo {
         System.arraycopy(fftFrqBinsTemp, 0, fftFrqBins, 1, fftFrqBinsTemp.length);
         fftFrqBins[0] = fftFrqBins[1] - 1.5*nbin;
 
+        double[][] D = minusMatrix(repmat(fftFrqBins, nbin, 1),
+                                   transpose(repmat(
+                                           toDoubleArray(range(0, nbin - 1)),
+                                           1,
+                                           fftLen))
+                                  );
 
+
+        double nbins2 = Math.round(nbin/2);
 
 
         return wts;

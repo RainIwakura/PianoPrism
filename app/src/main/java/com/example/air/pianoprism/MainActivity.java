@@ -6,7 +6,6 @@ import android.content.res.Resources;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
-import android.graphics.drawable.GradientDrawable;
 import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioRecord;
@@ -18,7 +17,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v7.app.ActionBarActivity;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -44,12 +42,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.text.DecimalFormat;
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
-import java.util.Objects;
 import java.util.Random;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -88,10 +85,12 @@ public class MainActivity extends ActionBarActivity {
 
     boolean needZeropadding = false;
 
-    private final ThreadPoolExecutor pool = new ThreadPoolExecutor(1, 1, 1,
+    private final ThreadPoolExecutor pool = new ThreadPoolExecutor(2, 2, 2,
             TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
 
-    UpdateUIThread uuit = null;
+    RecordingThread uuit = null;
+    ProcessingTread pt = null;
+    Handler pTHandler;
 
    /* Handler handle = new Handler() {
         public void handleMessage(Message msg) {
@@ -210,10 +209,19 @@ public class MainActivity extends ActionBarActivity {
 
         rl.addView(mPlayButton, params);
 
-    //    txtView = (TextView) findViewById(R.id.txtField);
-        this.uuit = new UpdateUIThread(recorder, bufferSize, handle, res, needZeropadding, column_number);
+
+        /////////////
+        pTHandler = new Handler();
+        ////////////
+        ////////////
+        ////////////
+        this.pt = new ProcessingTread();
+
+        this.uuit = new RecordingThread(recorder, bufferSize, handle, res, needZeropadding, column_number, pt.processHandle);
+        /////////////
 
 
+        //////
        // gridView = new GridView(this);
 
         gridView = (GridView) findViewById(R.id.gridView);
@@ -231,9 +239,6 @@ public class MainActivity extends ActionBarActivity {
         cells = new ArrayList<>(Arrays.asList(out_array));
 
 
-       /* for (int i = 0; i < 60; i++) {
-            cells.add("");
-        }*/
 
         adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, out_array) {
 
@@ -279,38 +284,6 @@ public class MainActivity extends ActionBarActivity {
         gridView.setAdapter(adapter);
 
 
-     /*   params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
-        params.addRule(RelativeLayout.CENTER_VERTICAL, RelativeLayout.TRUE);
-        params.addRule(RelativeLayout.CENTER_HORIZONTAL, RelativeLayout.TRUE);
-
-        params.addRule(RelativeLayout.ALIGN_TOP, RelativeLayout.TRUE);
-
-
-        params.addRule(RelativeLayout.ALIGN_BOTTOM, RelativeLayout.TRUE);*/
-
-
-
-//        rl.addView(gridView, params);
-
-        /**************************************************************************************************************/
-/*
-        graph = (GraphView) findViewById(R.id.graph);
-        graph.getViewport().setYAxisBoundsManual(true);
-        graph.getViewport().setMinY(0);
-        graph.getViewport().setMaxY(80000);
-        graph.getViewport().setXAxisBoundsManual(true);
-        graph.getViewport().setMinX(0);
-        graph.getViewport().setMaxX(22050);
-
-
-        dp_arr = new DataPointFaster[bufferSize];
-
-        for (int i = 0; i< bufferSize; i++) {
-            dp_arr[i] = new DataPointFaster(i, 0);
-        }
-        series = new LineGraphSeries<DataPointFaster>(dp_arr);
-        graph.addSeries(series);
-        ugt = new UpdateGraphTask();*/
 
         lightgreen = this.getResources().getColor(R.color.lightgreen);
         blue = this.getResources().getColor(R.color.blue);
@@ -334,14 +307,6 @@ public class MainActivity extends ActionBarActivity {
 
         PianoRollExample pre = new PianoRollExample();
 
-    /*    Uri auri = Uri.parse("android.resource://" + getPackageName() +R.raw.chopin);
-        URI juri = null;
-        try {
-            juri = new URI(auri.toString());
-        } catch (URISyntaxException e) {
-            e.printStackTrace();
-        }
-*/
         Resources res = getResources();
         AssetManager am = res.getAssets();
         InputStream inputStream = null;
@@ -526,29 +491,16 @@ public class MainActivity extends ActionBarActivity {
 
         if (recorder.getState() == AudioRecord.RECORDSTATE_STOPPED) {
             if (uuit == null) {
-                uuit =  new UpdateUIThread(recorder, bufferSize, handle, res, needZeropadding, column_number);
+                uuit =  new RecordingThread(recorder, bufferSize, handle, res, needZeropadding, column_number, pTHandler);
             }
             recorder.startRecording();
             pool.execute(uuit);
+            pool.execute(pt);
         }
 
     }
 
     private void stopRecording() {
-       /* if (recorder.getState() == AudioRecord.RECORDSTATE_RECORDING)
-            recorder.stop();
-        if (uuit != null) {
-            series = null;
-            uuit.setRunning(false);
-            pool.remove(uuit);
-
-        //    pool.shutdownNow();
-
-            recorder.release();
-        }
-        recorder = null;
-        uuit = null;*/
-
 
         new StopRecordTask().execute();
     }
@@ -610,6 +562,7 @@ public class MainActivity extends ActionBarActivity {
             if (uuit != null) {
                 uuit.setRunning(false);
                 pool.remove(uuit);
+                pool.remove(pt);
             }
 
             recorder.release();

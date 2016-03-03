@@ -345,6 +345,36 @@ public class MatrixUtils<T> {
         return sb.toString();
     }
 
+
+    public static String printArray(double[] arr) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("[");
+        for (int i = 0; i < arr.length; i++){
+            sb.append(arr[i]);
+            if (i < arr.length - 1) {
+                sb.append(", ");
+            }
+        }
+        sb.append("]");
+
+        return sb.toString();
+    }
+
+
+    public static String printArray(int[] arr) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("[");
+        for (int i = 0; i < arr.length; i++){
+            sb.append(arr[i]);
+            if (i < arr.length - 1) {
+                sb.append(", ");
+            }
+        }
+        sb.append("]");
+
+        return sb.toString();
+    }
+
     public String printMatrix(T arr[][]) {
         StringBuilder toWrite = new StringBuilder();
         for (int i = 0; i < arr.length; i++) {
@@ -597,4 +627,61 @@ public class MatrixUtils<T> {
         }
         return res;
     }
+
+    // simple transposition for 1d array
+    public static double[][] transpose(double[] in) {
+        double[][] res = new double[in.length][1];
+        for (int i = 0; i < in.length; i++) {
+            res[i][0] = in[i];
+        }
+
+        return res;
+    }
+
+    public static double[][] transpose(double[][] in) {
+        double[][] res = new double[in[0].length][in.length];
+        for (int j = 0; j < in[0].length; j++) {
+            for (int i = 0; i < in.length; i++) {
+                res[j][i] = in[i][j];
+            }
+        }
+
+        return res;
+    }
+
+
+    public static double[][] minusMatrix(double[][] in1, double[][] in2) {
+        double[][] res = new double[in1.length][in1[0].length];
+
+        for (int i = 0; i < in1.length; i++) {
+            for (int j = 0; j < in1[0].length;j++) {
+                res[i][j] = in1[i][j] - in2[i][j];
+            }
+        }
+
+        return res;
+    }
+
+    public static double[][] plusMatrix(double[][] in1, double[][] in2) {
+        double[][] res = new double[in1.length][in1[0].length];
+
+        for (int i = 0; i < in1.length; i++) {
+            for (int j = 0; j < in1[0].length;j++) {
+                res[i][j] = in1[i][j] + in2[i][j];
+            }
+        }
+
+        return res;
+    }
+
+
+    public  static double[] toDoubleArray(int[] arr) {
+        double[] res = new double[arr.length];
+        for (int i = 0; i < arr.length; i++) {
+            res[i] = arr[i];
+        }
+
+        return res;
+    }
+
 }

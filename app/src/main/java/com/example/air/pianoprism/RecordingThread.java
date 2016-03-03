@@ -20,11 +20,11 @@ import java.util.HashSet;
  */
 
 
-public class UpdateUIThread extends Thread {
+public class RecordingThread extends Thread {
     /////////////////////////////////////
     /// variables needed for communication between this thread and main activity
     /////////////////////////////////////
-    String TAG = "UpdateUIThread";
+    String TAG = "RecordingThread";
     Bundle containerForInfoToSend;
     private Handler handle;
     /////////////////////////////////////
@@ -91,12 +91,14 @@ public class UpdateUIThread extends Thread {
 
 
 
+    Handler processingThreadHandler;
 
-    UpdateUIThread  (
-                        AudioRecord recorder, int bufferSize,
-                        Handler handle, double res,
-                        boolean needZeropadding, int column_number
-                    )
+    RecordingThread(
+            AudioRecord recorder, int bufferSize,
+            Handler handle, double res,
+            boolean needZeropadding, int column_number,
+            Handler processThreadHandler
+    )
     {
 
 
@@ -152,7 +154,7 @@ public class UpdateUIThread extends Thread {
 
          this.samplesToStore = new short[sampleNumber][bufferSize];
 
-
+         this.processingThreadHandler = processThreadHandler;
     }
 
 
@@ -260,14 +262,21 @@ public class UpdateUIThread extends Thread {
 
             int column = (Integer) params[1];
 
+            double[] message = new double[tempBuffer.length];
+
             for (int i = 0; i < bufferSize; i++) {
                 processingBuffer[i] = tempBuffer[i];
+                message[i]  = tempBuffer[i];
             }
+
+            processingThreadHandler.sendMessage(createBundleMsg(message));
+
             double[] result;
             if (needZeropadding) {
                 result = zeroPad(processingBuffer, zeroPadTimes);
             } else
                 result = processingBuffer;
+
 
 
             fft.realForward(result);
