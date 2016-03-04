@@ -36,6 +36,8 @@ import com.example.air.pianoprism.examples.PianoRollExampleDoubles;
 import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.series.LineGraphSeries;
 
+import org.apache.commons.logging.Log;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -46,7 +48,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Random;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -89,7 +90,7 @@ public class MainActivity extends ActionBarActivity {
             TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
 
     RecordingThread uuit = null;
-    ProcessingTread pt = null;
+    ProcessingThread pt = null;
     Handler pTHandler;
 
    /* Handler handle = new Handler() {
@@ -139,6 +140,20 @@ public class MainActivity extends ActionBarActivity {
             //updateUImethod();
 
 
+            Bundle b = msg.getData();
+
+            received_arr = b.getDoubleArray("data");
+
+            new CalculateColorsTask().execute();
+
+
+        }
+    };
+
+
+
+    Handler updateUIhandler = new Handler() {
+        public void handleMessage(Message msg) {
             Bundle b = msg.getData();
 
             received_arr = b.getDoubleArray("data");
@@ -215,7 +230,7 @@ public class MainActivity extends ActionBarActivity {
         ////////////
         ////////////
         ////////////
-        this.pt = new ProcessingTread();
+        this.pt = new ProcessingThread(updateUIhandler, bufferSize, res);
 
         this.uuit = new RecordingThread(recorder, bufferSize, handle, res, needZeropadding, column_number, pt.processHandle);
         /////////////

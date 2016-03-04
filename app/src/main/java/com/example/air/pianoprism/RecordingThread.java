@@ -124,10 +124,10 @@ public class RecordingThread extends Thread {
         containerForInfoToSend =  new Bundle();
         tempBuffer = new short[this.bufferSize];
         processingBuffer = new double[bufferSize];
-        this.notes = fillNotes();
-        Arrays.fill(final_result, 0);
+ //       this.notes = fillNotes();
+//        Arrays.fill(final_result, 0);
 
-
+/*
         ///////////////////////////////////////////////////////////////
         //  FFT INITIALIZATION AND ZERO PADDING CODE
         //////////////////////////////////////////////////////////////
@@ -150,7 +150,7 @@ public class RecordingThread extends Thread {
         pitchClassWithBins = mapPitchClassToBins(this.mapping_Of_Notes_To_FFT_bins);
 
         ////////////////////////////////////
-
+    */
 
          this.samplesToStore = new short[sampleNumber][bufferSize];
 
@@ -192,7 +192,9 @@ public class RecordingThread extends Thread {
             column++;
             column %= column_number;
 
-            new DoFftTask().execute(j, column);
+            //new DoFftTask().execute(j, column);
+            new ProcessingThreadTask().execute(j, column);
+
 
         }
         Log.d("exit", "0"); // inform Developer that loop has finished running
@@ -303,6 +305,28 @@ public class RecordingThread extends Thread {
         }
     }
 
+
+
+
+
+    class ProcessingThreadTask extends AsyncTask {
+
+        @Override
+        public String doInBackground(Object ...params) {
+
+            int column = (Integer) params[1];
+
+            double[] message = new double[tempBuffer.length];
+
+            for (int i = 0; i < bufferSize; i++) {
+                message[i]  = (double) tempBuffer[i];
+            }
+
+            processingThreadHandler.sendMessage(createBundleMsg(message, column));
+
+            return "";
+        }
+    }
 
 
     /*
@@ -575,11 +599,20 @@ public class RecordingThread extends Thread {
 
     public Message createBundleMsg(double[] arr) {
         containerForInfoToSend.putDoubleArray("data", arr);
+       // containerForInfoToSend.pu
         Message msg = handle.obtainMessage();
         msg.setData(containerForInfoToSend);
         return msg;
     }
 
+
+    public Message createBundleMsg(double[] arr, int column) {
+        containerForInfoToSend.putDoubleArray("data", arr);
+        containerForInfoToSend.putInt("col",column);
+        Message msg = handle.obtainMessage();
+        msg.setData(containerForInfoToSend);
+        return msg;
+    }
 
     /*
     ///
