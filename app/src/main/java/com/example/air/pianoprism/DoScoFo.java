@@ -20,21 +20,27 @@ import cern.colt.matrix.impl.DenseDoubleMatrix2D;
 import static com.example.air.pianoprism.MatrixUtils._notBool;
 import static com.example.air.pianoprism.MatrixUtils.any;
 import static com.example.air.pianoprism.MatrixUtils.any;
+import static com.example.air.pianoprism.MatrixUtils.div_elemWise;
+import static com.example.air.pianoprism.MatrixUtils.exp;
 import static com.example.air.pianoprism.MatrixUtils.log_elemWise;
+import static com.example.air.pianoprism.MatrixUtils.maximum;
 import static com.example.air.pianoprism.MatrixUtils.minusMatrix;
 import static com.example.air.pianoprism.MatrixUtils.mul_elemWise;
 import static com.example.air.pianoprism.MatrixUtils.mul_elemWise;
 import static com.example.air.pianoprism.MatrixUtils.mul_elemWise;
 import static com.example.air.pianoprism.MatrixUtils.mul_elemWiseIntToDouble;
+import static com.example.air.pianoprism.MatrixUtils.plusMatrix;
 import static com.example.air.pianoprism.MatrixUtils.range;
 import static com.example.air.pianoprism.MatrixUtils.power_elemWise;
 import static com.example.air.pianoprism.MatrixUtils.randInt;
 import static com.example.air.pianoprism.MatrixUtils.mean;
 import static com.example.air.pianoprism.MatrixUtils.hammingWin;
+import static com.example.air.pianoprism.MatrixUtils.remainder;
 import static com.example.air.pianoprism.MatrixUtils.repmat;
+import static com.example.air.pianoprism.MatrixUtils.sliceOfArray;
 import static com.example.air.pianoprism.MatrixUtils.toDoubleArray;
 import static com.example.air.pianoprism.MatrixUtils.transpose;
-
+import static com.example.air.pianoprism.MatrixUtils.sum;
 
 /**
  * Created by rednecked_crake on 2/6/16.
@@ -172,7 +178,7 @@ public class DoScoFo {
         double[] chromaAF;
         double chromaAFEnergy;
 
-/*        for (int i =  0;  i < frameNum; i++) {
+       for (int i =  0;  i < frameNum; i++) {
             int startp           = 1 + (i - 1)*frameHop;
             int endp             = startp + frameLen - 1;
             double[] data        = new double[endp - startp];
@@ -327,7 +333,7 @@ public class DoScoFo {
 
 
 
-        }*/
+        }
 
     }
 
@@ -455,8 +461,7 @@ public class DoScoFo {
         * Adapted from code by Dan Ellis, LabROSA, Columbia EE
      */
 
-    public double[] fft2chromaX(int fftLen, int nbin, int fs, double A440, double f_ctrl_log, double f_std) {
-        double[] wts = new double[fftLen];
+    public double[][] fft2chromaX(int fftLen, int nbin, int fs, double A440, double f_ctrl_log, double f_std) {
 
 
         int[] freqRange = range(1,fftLen-1); // temp container for frequencies
@@ -468,15 +473,74 @@ public class DoScoFo {
         System.arraycopy(fftFrqBinsTemp, 0, fftFrqBins, 1, fftFrqBinsTemp.length);
         fftFrqBins[0] = fftFrqBins[1] - 1.5*nbin;
 
-        double[][] D = minusMatrix(repmat(fftFrqBins, nbin, 1),
-                                   transpose(repmat(
-                                           toDoubleArray(range(0, nbin - 1)),
-                                           1,
-                                           fftLen))
-                                  );
+
+        double[][] D = new double[nbin][fftFrqBins.length];
+        try {
+            D = minusMatrix(repmat(fftFrqBins, nbin, 1),
+                    transpose(repmat(
+                                     toDoubleArray(range(0, nbin - 1)),
+                                     1,
+                                     fftLen)
+                    )
+            );
+        } catch (MatrixUtils.DimensionsDoNotCorrespondException e) {
+
+        }
+
+        int nbins2 = Math.round(nbin/2);
+
+        D = minusMatrix( remainder(
+                                   plusMatrix(D, (double) nbins2 + 10*nbin), nbin
+                                  )
+                        ,
+                        nbins2); // DOES D CHANGE TYPE? STUPID MATLAB
 
 
-        double nbins2 = Math.round(nbin/2);
+        double[] maxim = new double[fftLen - 1];
+
+        try {
+            maxim = maximum(1,
+                    minusMatrix(sliceOfArray(fftFrqBins, 1, fftLen - 1),
+                            sliceOfArray(fftFrqBins, 0, fftLen - 2)));
+
+        } catch (MatrixUtils.DimensionsDoNotCorrespondException e) {
+
+        }
+
+
+        double[] binwidthbins = new double[maxim.length + 1];
+        System.arraycopy(maxim, 0, binwidthbins, 0, maxim.length);
+        binwidthbins[binwidthbins.length - 1] = 1;
+
+        double[][] wts = new double[D.length][D[0].length];
+
+        try {
+            wts = exp(mul_elemWise(
+                    div_elemWise(mul_elemWise(D, 2),
+                            repmat(binwidthbins, nbin, 1)
+                    )
+                    , -0.5));
+        } catch (Exception e) {
+        }
+
+        try {
+            wts = div_elemWise(wts,
+                               repmat(sum(wts),nbin,1
+
+                  )
+            );
+        } catch ( MatrixUtils.DimensionsDoNotCorrespondException e) {
+
+        }
+
+
+        for (int i = 0; i < wts.length; i++) {
+            // j <= --- ?????
+            for (int j = fftLen/2 + 2 - 1; j < fftLen; j++) {
+                wts[i][j] = 0;
+            }
+        }
+
 
 
         return wts;
