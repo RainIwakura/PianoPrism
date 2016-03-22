@@ -1,6 +1,8 @@
 package com.example.air.pianoprism;
 
 
+import android.graphics.Matrix;
+
 import org.jtransforms.fft.DoubleFFT_1D;
 
 import java.util.Arrays;
@@ -15,11 +17,11 @@ import cern.colt.matrix.impl.DenseDoubleMatrix1D;
 import cern.colt.matrix.impl.DenseDoubleMatrix2D;
 
 
-
-
 import static com.example.air.pianoprism.MatrixUtils._notBool;
+import static com.example.air.pianoprism.MatrixUtils.abs;
 import static com.example.air.pianoprism.MatrixUtils.any;
 import static com.example.air.pianoprism.MatrixUtils.any;
+import static com.example.air.pianoprism.MatrixUtils.approxEqual;
 import static com.example.air.pianoprism.MatrixUtils.div_elemWise;
 import static com.example.air.pianoprism.MatrixUtils.exp;
 import static com.example.air.pianoprism.MatrixUtils.log_elemWise;
@@ -29,6 +31,7 @@ import static com.example.air.pianoprism.MatrixUtils.mul_elemWise;
 import static com.example.air.pianoprism.MatrixUtils.mul_elemWise;
 import static com.example.air.pianoprism.MatrixUtils.mul_elemWise;
 import static com.example.air.pianoprism.MatrixUtils.mul_elemWiseIntToDouble;
+import static com.example.air.pianoprism.MatrixUtils.mult_matrix;
 import static com.example.air.pianoprism.MatrixUtils.plusMatrix;
 import static com.example.air.pianoprism.MatrixUtils.range;
 import static com.example.air.pianoprism.MatrixUtils.power_elemWise;
@@ -44,7 +47,7 @@ import static com.example.air.pianoprism.MatrixUtils.sum;
 
 /**
  * Created by rednecked_crake on 2/6/16.
- *  TODO: GOTTA CHECK ALL INDICES
+ * TODO: GOTTA CHECK ALL INDICES
  */
 public class DoScoFo {
 
@@ -56,7 +59,7 @@ public class DoScoFo {
 
 
 	/*
-	 *   SET PARAMETERS CHROMA
+     *   SET PARAMETERS CHROMA
 	 */
 
 
@@ -65,9 +68,10 @@ public class DoScoFo {
     int frameLen = 2048;
     int frameHop = 441;
     int zpf = 4;
-    int fftLen = (int) Math.pow(2, 32 - Integer.numberOfLeadingZeros(frameLen*zpf - 1));
+    int fftLen = (int) Math.pow(2, 32 - Integer.numberOfLeadingZeros(frameLen * zpf - 1));
 
     double[] win = hammingWin(fftLen, "periodic");
+    double onset_th = 225;
     //////////////////
 
 
@@ -83,12 +87,14 @@ public class DoScoFo {
     boolean bSpecSub = false;
 
 
-
+    double[] prevSample;
+    double specFlux;
+    double rmsCur;
     /*
      * frameNum - calculated from user-inputted time of practice
      */
 
-    public DoScoFo (double[][] nmat, int frameNum, int fs, double[] sample) {
+    public DoScoFo(double[][] nmat, int frameNum, int fs, double[] sample) {
 
 
         System.out.println("FFT LEN: " + fftLen);
@@ -113,22 +119,23 @@ public class DoScoFo {
         double maxBeat = col1.copy().assign(col2.copy(), plus).aggregate(retBigger, identity);
 
         // 60*(max(nmat(:,1))-min(nmat(:,1))) /(max(nmat(:,6))-min(nmat(:,6)));
-        double scoreTempo = 60* ( col1.copy().aggregate(retBigger, identity)
-                                - col1.copy().aggregate(retSmaller, identity))/
-                                (nmatDM.viewColumn(6).copy().aggregate(retBigger, identity)
-                                        -
-                                 nmatDM.viewColumn(6).copy().aggregate(retSmaller, identity)
-                                );
+        double scoreTempo = 60 * (col1.copy().aggregate(retBigger, identity)
+                - col1.copy().aggregate(retSmaller, identity)) /
+                (nmatDM.viewColumn(6).copy().aggregate(retBigger, identity)
+                        -
+                        nmatDM.viewColumn(6).copy().aggregate(retSmaller, identity)
+                );
 
 
         double minBPM = 0.75 * scoreTempo;
         double maxBPM = 1.25 * scoreTempo;
-        double sigma_v = scoreTempo/4;
+        double sigma_v = scoreTempo / 4;
+
 
         FindMidiSeg fms = new FindMidiSeg(nmat);
         MidiSegObject midiSeg = fms.findMidiSeg();
-
         int scoreSegNum = midiSeg.scoreSeg[0].length;
+
 
         // allScoreIdx = 1:scoreSegNum
         Integer[] allScoreIdx = new Integer[scoreSegNum];
@@ -136,20 +143,30 @@ public class DoScoFo {
             allScoreIdx[i] = i;
         }
 
+
         double timeLen = 120 * 1000;
 
+
+        double f_ctrl = 0;
+        double f_std = 0;
+        double A0 = 27.5;
+        double A440 = 440;
+        double f_ctrl_log = Math.log(f_ctrl / A440) / Math.log(2);
+        double[][] ff2cm = fft2chromaX(fftLen, nbin, fs, A440, f_ctrl_log, f_std);
+
+
         /// xs = zeroes (2, frameNum + 1)
-        double[][] xs = new double[2][frameNum+1];
+        double[][] xs = new double[2][frameNum + 1];
         Arrays.fill(xs[0], 0);
         Arrays.fill(xs[1], 0);
 
 
-        int frameHopMin = frameHop/fs/60;
+        int frameHopMin = frameHop / fs / 60;
 
         int[] F = {1, frameHopMin, 0, 1};
 
         double[][] scoreSeg = midiSeg.scoreSeg;
-        double[][] scoreMP =  midiSeg.scoreMP;
+        double[][] scoreMP = midiSeg.scoreMP;
 
         // repmat onsetMat
         double[][] onsetMat = new double[parNum][scoreSeg[0].length];
@@ -172,22 +189,29 @@ public class DoScoFo {
         }
 
 
-
         int bStart = 0;
 
-        double[] chromaAF;
+        double[] chromaAF = new double[nbin];
         double chromaAFEnergy;
 
-       for (int i =  0;  i < frameNum; i++) {
-            int startp           = 1 + (i - 1)*frameHop;
-            int endp             = startp + frameLen - 1;
-            double[] data        = new double[endp - startp];
+
+        double[] wx;
+        double[][] uChromaMF;
+        double[] notes;
+        double[][] unotes;
+
+        int bFindOnset = 0;
+        for (int i = 0; i < frameNum; i++) {
+            int startp = 1 + (i - 1) * frameHop;
+            int endp = startp + frameLen - 1;
+            double[] data = new double[endp - startp];
             double[][] particles = new double[2][parNum];
-            double[] x_init      =  {minBeat, scoreTempo};;
+            double[] x_init = {minBeat, scoreTempo};
+            ;
 
             int jj = 0;
             for (int j = startp; j < endp; j++) {
-                data[jj] = sample[j]*win[jj];
+                data[jj] = sample[j] * win[jj];
             }
 
             if (bStart == 0) {
@@ -207,8 +231,8 @@ public class DoScoFo {
                     }
 
                     for (int k = 0; k < parNum; k++) {
-                        Random rand = new Random ();
-                        particles[2][k] = randInt(1, frameNum) * (maxBPM - minBPM) + minBPM ;
+                        Random rand = new Random();
+                        particles[2][k] = randInt(1, frameNum) * (maxBPM - minBPM) + minBPM;
                     }
 
 
@@ -239,7 +263,7 @@ public class DoScoFo {
             int[] idx = new int[ppMat.length];
 
             for (int k = 0; k < idx.length; k++) {
-                for (int kk = 0;  kk < ppMat[0].length; kk++) {
+                for (int kk = 0; kk < ppMat[0].length; kk++) {
                     idx[k] = ppMat[k][kk] >= onsetMat[k][kk] & ppMat[k][kk] <= offsetMat[k][kk] ? kk : -1;
                 }
             }
@@ -257,20 +281,20 @@ public class DoScoFo {
             MatrixUtils mu = new MatrixUtils();
 
             ArrayDeque<Integer> idx1 = new ArrayDeque<Integer>();
-            int[]               idx2 = new int[fx.length];
-            int[]               ufx  = mu.unique(fx, idx1, idx2);
+            int[] idx2 = new int[fx.length];
+            int[] ufx = mu.unique(fx, idx1, idx2);
 
             int uParNum = idx1.size();
 
-           ///
-            double[][] unotes = new double[scoreMP.length][uParNum];
+            ///
+            unotes = new double[scoreMP.length][uParNum];
 
             Iterator<Integer> idx1_i = idx1.iterator();
 
             for (int k = 0; k < scoreMP.length; k++) {
                 int k1 = 0;
                 while (idx1_i.hasNext()) {
-                    unotes[k][k1] =  idx1_i.next();
+                    unotes[k][k1] = idx1_i.next();
                     k1++;
                 }
             }
@@ -281,9 +305,8 @@ public class DoScoFo {
 
             if (!any(_notBool(any(unotes, 1)))
                     &&
-                (mean(power_elemWise(data, 2)) < rms_Th)
-               )
-            {
+                    (mean(power_elemWise(data, 2)) < rms_Th)
+                    ) {
 
                 // xs(:, frameNum + 1) = xs(:, frameNum)
                 for (int k = 0; k < xs.length; k++) {
@@ -291,7 +314,7 @@ public class DoScoFo {
                 }
 
                 for (int k = 0; k < particles[0].length; k++) {
-                    particles[0][k] = particles[0][k] + 0.01*randInt(1, parNum);
+                    particles[0][k] = particles[0][k] + 0.01 * randInt(1, parNum);
                 }
 
                 for (int k = 0; k < particles[0].length; k++) {
@@ -301,7 +324,7 @@ public class DoScoFo {
                     } else if (particles[0][k] > maxBeat) {
                         particles[0][k] = maxBeat;
                     }
-                 }
+                }
 
                 continue;
 
@@ -313,34 +336,60 @@ public class DoScoFo {
                 int fft_len = sample.length;
                 ///// TO BE CHANGED TO FFT TASK
                 DoubleFFT_1D fft = new DoubleFFT_1D(fft_len); // class that performs FFT - library JTransforms
-                double [] spec = new double[sample.length];
+                double[] spec = new double[sample.length];
                 System.arraycopy(data, 0, spec, 0, sample.length);
 
                 fft.realForward(spec, fft_len);
 
-                //////
+                /////
 
 
+                try {
+                    chromaAF = mult_matrix(ff2cm, abs(spec));
+                } catch (MatrixUtils.DimensionsDoNotCorrespondException e) {
+
+                }
+
+                chromaAFEnergy = Math.sqrt(sum(power_elemWise(chromaAF, 2)));
+                if (approxEqual(chromaAFEnergy, 0) && chromaAFEnergy != 0) {
+                    double factor = 1 / chromaAFEnergy;
+                    chromaAF = mul_elemWise(chromaAF, factor);
+                }
+
+                if (bSpecSub) {
+                    OnsetDetectionRT onsetDet = new OnsetDetectionRT(prevSample, sample, null);
+                    this.specFlux = onsetDet.getSpecFlux();
+                    this.rmsCur = onsetDet.getRms();
+                    double onsetVal = specFlux / rmsCur;
+
+                    if (onsetVal > onset_th) {
+                        bFindOnset = 1;
+                    }
+                    if (bFindOnset == 1) {
+
+                    }
+
+                    if (uParNum == 1) {
+                        wx  = new double[parNum];
+                        Arrays.fill(wx, 1.0/(double) parNum);
+                    } else {
+                        uChromaMF = new double[nbin][uParNum];
+                        for (int ii = 0; ii < uParNum; ii++) {
+                            notes = MatrixUtils.sliceOf2dArray(unotes, 0, unotes.length, ii, 1.0);
+
+                        }
+                    }
 
 
+                }
 
 
             }
 
 
-
-
-
-
-
         }
 
     }
-
-
-
-
-
 
 
     DoubleDoubleFunction plus = new DoubleDoubleFunction() {
@@ -374,7 +423,6 @@ public class DoScoFo {
         }
 
     };
-
 
 
     DoubleDoubleFunction moreCmpr = new DoubleDoubleFunction() {
@@ -464,36 +512,36 @@ public class DoScoFo {
     public double[][] fft2chromaX(int fftLen, int nbin, int fs, double A440, double f_ctrl_log, double f_std) {
 
 
-        int[] freqRange = range(1,fftLen-1); // temp container for frequencies
-        double factor = 1/(fftLen*fs);
+        int[] freqRange = range(1, fftLen - 1); // temp container for frequencies
+        double factor = 1 / (fftLen * fs);
         double[] frequencies = mul_elemWiseIntToDouble(freqRange, factor);
-        double[] fftFrqBinsTemp  = mul_elemWise(hertz2octaves(frequencies, A440), nbin);
+        double[] fftFrqBinsTemp = mul_elemWise(hertz2octaves(frequencies, A440), nbin);
 
         double[] fftFrqBins = new double[fftFrqBinsTemp.length + 1];
         System.arraycopy(fftFrqBinsTemp, 0, fftFrqBins, 1, fftFrqBinsTemp.length);
-        fftFrqBins[0] = fftFrqBins[1] - 1.5*nbin;
+        fftFrqBins[0] = fftFrqBins[1] - 1.5 * nbin;
 
 
         double[][] D = new double[nbin][fftFrqBins.length];
         try {
             D = minusMatrix(repmat(fftFrqBins, nbin, 1),
                     transpose(repmat(
-                                     toDoubleArray(range(0, nbin - 1)),
-                                     1,
-                                     fftLen)
+                                    toDoubleArray(range(0, nbin - 1)),
+                                    1,
+                                    fftLen)
                     )
             );
         } catch (MatrixUtils.DimensionsDoNotCorrespondException e) {
 
         }
 
-        int nbins2 = Math.round(nbin/2);
+        int nbins2 = Math.round(nbin / 2);
 
-        D = minusMatrix( remainder(
-                                   plusMatrix(D, (double) nbins2 + 10*nbin), nbin
-                                  )
-                        ,
-                        nbins2); // DOES D CHANGE TYPE? STUPID MATLAB
+        D = minusMatrix(remainder(
+                        plusMatrix(D, (double) nbins2 + 10 * nbin), nbin
+                )
+                ,
+                nbins2); // DOES D CHANGE TYPE? STUPID MATLAB
 
 
         double[] maxim = new double[fftLen - 1];
@@ -525,22 +573,21 @@ public class DoScoFo {
 
         try {
             wts = div_elemWise(wts,
-                               repmat(sum(wts),nbin,1
+                    repmat(sum(wts), nbin, 1
 
-                  )
+                    )
             );
-        } catch ( MatrixUtils.DimensionsDoNotCorrespondException e) {
+        } catch (MatrixUtils.DimensionsDoNotCorrespondException e) {
 
         }
 
 
         for (int i = 0; i < wts.length; i++) {
             // j <= --- ?????
-            for (int j = fftLen/2 + 2 - 1; j < fftLen; j++) {
+            for (int j = fftLen / 2 + 2 - 1; j < fftLen; j++) {
                 wts[i][j] = 0;
             }
         }
-
 
 
         return wts;
@@ -551,7 +598,7 @@ public class DoScoFo {
 
         double[] res = new double[frequencies.length];
         System.arraycopy(frequencies, 0, res, 0, frequencies.length);
-        double div = A440/16;
+        double div = A440 / 16;
         for (int i = 0; i < frequencies.length; i++) {
             res[i] /= div;
         }
@@ -564,7 +611,6 @@ public class DoScoFo {
 
         return res;
     }
-
 
 
 }

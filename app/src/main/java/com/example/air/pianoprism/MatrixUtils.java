@@ -1094,6 +1094,40 @@ public class MatrixUtils<T> {
     }
 
 
+    public static double[] sliceOf2dArray(double[][] in, int x0, int x1, int y0, double dim) {
+
+        if (x0 < 0 | x1 >= in.length | y0 < 0  ) {
+            throw new ArrayIndexOutOfBoundsException();
+        }
+
+        double[] res = new double[x1 - x0 + 1];
+        int j = 0;
+        int k = 0;
+        for (int i = x0; i <= x1; i++) {
+                res[j] = in[i][y0];
+            j++;
+        }
+
+        return res;
+    }
+
+    public static double[] sliceOf2dArray(double[][] in, int x0, int y0, int y1, boolean b) {
+
+        if (x0 < 0 |  y0 < 0 | y1 >= in[0].length ) {
+            throw new ArrayIndexOutOfBoundsException();
+        }
+
+        double[] res = new double[y1 - y0 + 1];
+        int j = 0;
+        int k = 0;
+            for (int ii = y0; ii < y1; ii++) {
+                res[k] = in[x0][ii];
+                k++;
+            }
+        return res;
+    }
+
+
     public static double[][] exp (double[][] in) {
         double[][] res =  new double[in.length][in[0].length];
 
@@ -1191,14 +1225,107 @@ public class MatrixUtils<T> {
     }
 
 
+    public static double sum(double[] in) {
+        double res = 0;
+        for (int i = 0; i < in.length; i++) {
+                res += in[i];
+        }
+
+        return res;
+    }
 
 
 
+    public static double[] abs(double[] in) {
+        double[] res = new double[in.length];
+
+        for (int i = 0; i < in.length; i++) {
+            res[i] = Math.abs(in[i]);
+        }
+
+        return res;
+    }
+
+    public static double[][] abs(double[][] in) {
+        double[][] res = new double[in.length][in[0].length];
+
+        for (int i = 0; i < in.length; i++) {
+            for (int j = 0; j < in[0].length; j++) {
+                res[i][j] = Math.abs(in[i][j]);
+            }
+        }
+
+        return res;
+    }
+
+
+    public static double[] mult_matrix(double[][] in1, double[] in2) throws DimensionsDoNotCorrespondException{
+        if (in1[0].length != in2.length) {
+            throw new DimensionsDoNotCorrespondException();
+        }
+
+        double[] res = new double[in1.length];
+        Arrays.fill(res, 0);
+
+        for (int i = 0; i < in1.length; i++) {
+            for (int j = 0; j < in2.length; j++) {
+                res[i] += in1[i][j]*in2[j];
+            }
+        }
+
+        return res;
+    }
+
+
+
+    public static  double[][] mult_matrix(double[][] in1, double[][] in2) throws DimensionsDoNotCorrespondException{
+        if (in1[0].length != in2.length) {
+            throw new DimensionsDoNotCorrespondException();
+        }
+
+        double[][] res = new double[in1.length][in2[0].length];
+
+        for (double[] e: res)
+            Arrays.fill(e, 0);
+
+
+        for (int i = 0; i < in1.length; i++) {
+            for (int j = 0; j < in2[0].length; j++) {
+                for (int k = 0; k < in2.length; k++ ) {
+                    res[i][j] += in1[i][k]*in2[k][j];
+                }
+            }
+        }
+
+        return res;
+    }
+
+    public static double[] sqrt_elemWise(double[] in) {
+        double[] res = new double[in.length];
+
+        for (int i = 0; i < in.length; i++) {
+            res[i] = Math.sqrt(in[i]);
+        }
+
+        return res;
+    }
+
+    public static boolean approxEqual(double x, double y) {
+        boolean res = false;
+        if (Math.abs((x - y)/x) < Math.pow(10, -10))
+            res = true;
+
+        return  res;
+    }
 
     public static class DimensionsDoNotCorrespondException extends Exception {
         public DimensionsDoNotCorrespondException() {
             super();
         }
     }
+
+
+
+
 
 }
