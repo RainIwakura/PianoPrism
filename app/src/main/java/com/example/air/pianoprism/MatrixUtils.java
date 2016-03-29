@@ -1,5 +1,6 @@
 package com.example.air.pianoprism;
 
+import android.util.ArrayMap;
 import android.util.Log;
 
 import com.android.internal.util.Predicate;
@@ -585,6 +586,19 @@ public class MatrixUtils<T> {
         return res;
     }
 
+    public static boolean any(int[] arr) {
+        boolean res = false;
+
+        for (int i = 0;  i < arr.length; i++) {
+            if (arr[i] != 0) {
+                res = true;
+                break;
+            }
+        }
+
+        return res;
+    }
+
 
     public static boolean[] _notBool (boolean[] arr) {
         boolean[] res = new boolean[arr.length];
@@ -593,6 +607,9 @@ public class MatrixUtils<T> {
         }
         return res;
     }
+
+
+
 
 
     public static int[] range(int n1, int n2) {
@@ -1127,6 +1144,38 @@ public class MatrixUtils<T> {
         return res;
     }
 
+    public static double[][] sliceOf2dArray(double[][] in, int x0, int x1,int[] y_inxs) {
+
+        if (x0 < 0 | x1 > in.length |  y_inxs.length >= in[0].length ) {
+            throw new ArrayIndexOutOfBoundsException();
+        }
+
+        double[][] res = new double[x1 - x0][y_inxs.length];
+        int j = 0;
+        int k = 0;
+
+        for (int i = x0; i < x1; i++) {
+            for (int ii = 0; ii < y_inxs.length; ii++) {
+                res[i][ii] = in[i][y_inxs[ii]];
+            }
+        }
+
+        return res;
+    }
+
+
+    public static double[] sliceOfArray(double[] orig, int[] inxs) {
+        double[] res = new double[inxs.length];
+
+        for (int i = 0; i < inxs.length; i++) {
+            res[i] = orig[inxs[i]];
+        }
+
+        return res;
+    }
+
+
+
 
     public static double[][] exp (double[][] in) {
         double[][] res =  new double[in.length][in[0].length];
@@ -1300,6 +1349,16 @@ public class MatrixUtils<T> {
         return res;
     }
 
+
+    public static double[] mult_elemWise(double[] in1, double[] in2) {
+        double[] res = new double[in1.length];
+        for (int i = 0; i < in1.length; i++) {
+            res[i] = in1[i] * in2[i];
+        }
+
+        return res;
+    }
+
     public static double[] sqrt_elemWise(double[] in) {
         double[] res = new double[in.length];
 
@@ -1317,6 +1376,151 @@ public class MatrixUtils<T> {
 
         return  res;
     }
+
+
+
+    public static double[] retNonZeroElems(double[] in) {
+        int count = 0;
+        for (int i = 0; i < in.length; i++) {
+            if (in[i] != 0) {
+                count++;
+            }
+        }
+
+        double [] res = new double[count];
+        int j = 0;
+        for (int i = 0; i < in.length; i++) {
+            if (in[i] != 0) {
+                res[j] = in[i];
+                j++;
+            }
+
+        }
+
+        return res;
+    }
+
+
+    public static boolean[] nonZeroInxs(double[] in) {
+        boolean[] res = new boolean[in.length];
+
+        for (int i = 0; i < in.length; i++ ){
+            if (in[i] > 0) {
+                res[i] = true;
+            } else
+                res[i] = false;
+
+        }
+
+
+        return res;
+    }
+
+    public static int[] nonZeroInxsInt(double[] in) {
+        int[] res = new int[in.length];
+
+        for (int i = 0; i < in.length; i++ ){
+            if (in[i] > 0) {
+                res[i] = 1;
+            } else
+                res[i] = 0;
+
+        }
+
+
+        return res;
+    }
+
+
+
+    public static double[] sum(double[][] in, int dim) {
+        double[] res;
+
+        if (dim == 1) {
+            res = new double[in.length];
+            Arrays.fill(res, 0.0);
+
+            for (int i = 0; i < in.length; i++) {
+                for (int j = 0; j < in[0].length; j++) {
+                    res[i] += in[i][j];
+                }
+            }
+
+
+        } else {
+            res = new double[in[0].length];
+            Arrays.fill(res, 0.0);
+
+            for (int j = 0; j < in[0].length; j++) {
+                for (int i = 0; i < in.length; i++) {
+                    res[j] += in[i][j];
+                }
+            }
+        }
+
+
+        return res;
+    }
+
+    public static void assign(double[][] toChange, int row0, int row1, int col0, int col1, double[][] in) {
+        int count_i = 0;
+        int count_j = 0;
+        for (int i = row0; i < row1; i++) {
+            for (int j = col0; j < col1; j++) {
+                toChange[i][j] = in[count_i][count_j];
+                count_j++;
+            }
+            count_i++;
+        }
+
+    }
+
+
+    public static void assign(double[][] toChange, int row0, int row1, int[] inxs, double[][] in) {
+        int count_i = 0;
+        int count_j = 0;
+        for (int i = row0; i < row1; i++) {
+            for (int j = 0; j < inxs.length; j++) {
+                toChange[i][inxs[j]] = in[count_i][count_j];
+                count_j++;
+            }
+            count_i++;
+        }
+
+    }
+
+
+
+
+    public static void assign1DC(double[][] toChange, int row0, int row1, int col, double[] in) {
+        int count_i = 0;
+        for (int i = row0; i < row1; i++) {
+            toChange[i][col] = in[count_i];
+            count_i++;
+        }
+
+    }
+
+    public static void assign1DR(double[][] toChange, int col0, int col1, int row, double[] in) {
+        int count_i = 0;
+        for (int j = col0; j < col1; j++) {
+            toChange[row][j] = in[count_i];
+            count_i++;
+        }
+
+    }
+
+
+    public static double[] acos(double[] in) {
+        double[] res = new double[in.length];
+
+        for (int i = 0; i < in.length; i++) {
+            res[i] = Math.acos(in[i]);
+        }
+
+        return res;
+    }
+
 
     public static class DimensionsDoNotCorrespondException extends Exception {
         public DimensionsDoNotCorrespondException() {

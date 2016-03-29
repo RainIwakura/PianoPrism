@@ -22,6 +22,9 @@ import static com.example.air.pianoprism.MatrixUtils.abs;
 import static com.example.air.pianoprism.MatrixUtils.any;
 import static com.example.air.pianoprism.MatrixUtils.any;
 import static com.example.air.pianoprism.MatrixUtils.approxEqual;
+import static com.example.air.pianoprism.MatrixUtils.assign;
+import static com.example.air.pianoprism.MatrixUtils.assign1DC;
+import static com.example.air.pianoprism.MatrixUtils.assign1DR;
 import static com.example.air.pianoprism.MatrixUtils.div_elemWise;
 import static com.example.air.pianoprism.MatrixUtils.exp;
 import static com.example.air.pianoprism.MatrixUtils.log_elemWise;
@@ -31,7 +34,10 @@ import static com.example.air.pianoprism.MatrixUtils.mul_elemWise;
 import static com.example.air.pianoprism.MatrixUtils.mul_elemWise;
 import static com.example.air.pianoprism.MatrixUtils.mul_elemWise;
 import static com.example.air.pianoprism.MatrixUtils.mul_elemWiseIntToDouble;
+import static com.example.air.pianoprism.MatrixUtils.mult_elemWise;
 import static com.example.air.pianoprism.MatrixUtils.mult_matrix;
+import static com.example.air.pianoprism.MatrixUtils.nonZeroInxs;
+import static com.example.air.pianoprism.MatrixUtils.nonZeroInxsInt;
 import static com.example.air.pianoprism.MatrixUtils.plusMatrix;
 import static com.example.air.pianoprism.MatrixUtils.range;
 import static com.example.air.pianoprism.MatrixUtils.power_elemWise;
@@ -40,11 +46,15 @@ import static com.example.air.pianoprism.MatrixUtils.mean;
 import static com.example.air.pianoprism.MatrixUtils.hammingWin;
 import static com.example.air.pianoprism.MatrixUtils.remainder;
 import static com.example.air.pianoprism.MatrixUtils.repmat;
+import static com.example.air.pianoprism.MatrixUtils.retNonZeroElems;
+import static com.example.air.pianoprism.MatrixUtils.sliceOf2dArray;
 import static com.example.air.pianoprism.MatrixUtils.sliceOfArray;
+import static com.example.air.pianoprism.MatrixUtils.sqrt_elemWise;
 import static com.example.air.pianoprism.MatrixUtils.toDoubleArray;
 import static com.example.air.pianoprism.MatrixUtils.transpose;
 import static com.example.air.pianoprism.MatrixUtils.sum;
-
+import java.util.stream.*;
+import java.util.ArrayList;
 /**
  * Created by rednecked_crake on 2/6/16.
  * TODO: GOTTA CHECK ALL INDICES
@@ -201,6 +211,12 @@ public class DoScoFo {
         double[][] unotes;
 
         int bFindOnset = 0;
+        double[] binind;
+
+        double[] uChromaMFenergy;
+        double[] uwx;
+        double angle;
+
         for (int i = 0; i < frameNum; i++) {
             int startp = 1 + (i - 1) * frameHop;
             int endp = startp + frameLen - 1;
@@ -374,11 +390,55 @@ public class DoScoFo {
                         Arrays.fill(wx, 1.0/(double) parNum);
                     } else {
                         uChromaMF = new double[nbin][uParNum];
+                        boolean[] idx_0;
                         for (int ii = 0; ii < uParNum; ii++) {
                             notes = MatrixUtils.sliceOf2dArray(unotes, 0, unotes.length, ii, 1.0);
+                            notes = retNonZeroElems(notes);
+
+                            idx_0 = nonZeroInxs(notes);
+
+
+                            if (any(idx_0)){
+                                continue;
+                            }
+                            binind = plusMatrix(remainder(minusMatrix(notes,69), 12 ), 1);
+                            for (int iii = 0; iii < notes.length; iii++) {
+                                uChromaMF[(int) binind[iii]][ii]++;
+                            }
 
                         }
+
+                        uChromaMFenergy = sqrt_elemWise(sum(uChromaMF,1));
+                        idx = nonZeroInxsInt(uChromaMFenergy);
+                        try {
+                            assign(uChromaMF, 0, uChromaMF.length, idx,
+                                    div_elemWise(sliceOf2dArray(uChromaMF, 0, uChromaMF.length, idx),
+                                            repmat(sliceOfArray(uChromaMFenergy, idx), nbin, 1)
+                                    ));
+                        } catch (MatrixUtils.DimensionsDoNotCorrespondException e) {
+
+                        }
+                        uwx = new double[uParNum];
+                        Arrays.fill(uwx, 0);
+
+                        for (int ii = 0; ii < uParNum; ii++){
+                            if (chromaAFEnergy == 0 && uChromaMFenergy[ii] == 0) {
+                                angle = 0;
+                            } else {
+                                angle = Math.cos(sum(mult_elemWise(
+                                        sliceOf2dArray(uChromaMF, 0, uChromaMF.length, ii, 1.0),
+                                        chromaAF
+                                )));
+                            }
+                            uwx[ii] = Math.exp(-angle*angle);
+
+                        }
+                        wx = sliceOfArray(uwx, idx2);
+                        wx = mul_elemWise(wx, sum(wx));
                     }
+
+
+
 
 
                 }
@@ -390,6 +450,8 @@ public class DoScoFo {
         }
 
     }
+
+
 
 
     DoubleDoubleFunction plus = new DoubleDoubleFunction() {
