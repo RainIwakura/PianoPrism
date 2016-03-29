@@ -437,6 +437,7 @@ public class DoScoFo {
                         wx = mul_elemWise(wx, sum(wx));
                     }
 
+                    idx = new Resample(wx).getInxs();
 
 
 

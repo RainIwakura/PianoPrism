@@ -1522,6 +1522,112 @@ public class MatrixUtils<T> {
     }
 
 
+
+    public static double[] concatArrays(double[] in1, double[] in2) {
+        double[] res = new double[in1.length + in2.length];
+
+        for (int i = 0; i < in1.length; i++) {
+            res[i] = in1[i];
+        }
+        int i = 0;
+        for (int j = in1.length; j < in1.length + in2.length; j++){
+            res[j] = in2[i];
+            i++;
+        }
+        return res;
+    }
+
+
+    public static double[] aggregateArray (double[] in1, int x0, int x1, double[] in2, int y0, int y1) {
+        double[] res = new double[x1 - x0 + y1 - y0];
+
+        int count_0 = 0;
+        for (int i = x0; i < x1; i++) {
+            res[count_0] = in1[i];
+            count_0++;
+        }
+
+        for (int j = y0; j < y1; j++) {
+            res[count_0] = in2[j];
+            count_0++;
+        }
+
+        return res;
+    }
+
+
+    public static double[][] addDimensionToArray(double[] in1, double [] in2, int dim) {
+        double[][] res;
+        if (dim == 1) {
+            res = new double[2][in1.length];
+
+            System.arraycopy(res[0], 0, in1, 0, in1.length);
+            System.arraycopy(res[1], 0, in2, 0, in2.length);
+        } else {
+            res = new double[in1.length][2];
+            for (int i = 0; i < in1.length; i++) {
+                for (int j = 0; j < 2; j++ ){
+                    if (j == 0) {
+                        res[i][j] = in1[i];
+                    } else
+                        res[i][j] = in2[i];
+                }
+            }
+        }
+        return res;
+    }
+
+
+    public static double[][] addDimensionToArray(double[][] in1, double [] in2, int dim) {
+        double[][] res;
+        if (dim == 1) {
+            res = new double[in1.length + 1][in1.length];
+            for (int i = 0; i < in1.length; i++) {
+                System.arraycopy(res[i], 0, in1[i], 0, in1.length);
+            }
+            System.arraycopy(res[in1.length], 0, in2, 0, in2.length);
+        } else {
+            res = new double[in1.length][2];
+            for (int i = 0; i < in1.length; i++) {
+                for (int j = 0; j < in1[0].length + 1; j++ ){
+                    if (j != in1[0].length) {
+                        res[i][j] = in1[i][j];
+                    } else
+                        res[i][j] = in2[i];
+                }
+            }
+        }
+        return res;
+    }
+
+    public static double[][] addDimensionsToArray(double[][] in1, double[][] in2, int dim) {
+        double[][] res;
+        if (dim == 1) {
+            res = new double[in1.length + in2.length][in1.length];
+            for (int i = 0; i < in1.length; i++) {
+                System.arraycopy(res[i], 0, in1[i], 0, in1.length);
+            }
+            int count = 0;
+            for (int j = in1.length; j < in1.length + in2.length; j++) {
+                System.arraycopy(res[j], 0, in2[count], 0, in2.length);
+                count++;
+            }
+        } else {
+            res = new double[in1.length][2];
+            for (int i = 0; i < in1.length; i++) {
+                for (int j = 0; j < in1[0].length + in2[0].length; j++ ){
+                    if (j < in1[0].length) {
+                        res[i][j] = in1[i][j];
+                    } else
+                        res[i][j] = in2[i][j];
+                }
+            }
+        }
+        return res;
+    }
+
+
+
     public static class DimensionsDoNotCorrespondException extends Exception {
         public DimensionsDoNotCorrespondException() {
             super();
