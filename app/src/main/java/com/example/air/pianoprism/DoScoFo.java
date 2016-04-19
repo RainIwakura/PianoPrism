@@ -15,18 +15,23 @@ import cern.colt.function.DoubleFunction;
 import cern.colt.matrix.DoubleMatrix1D;
 import cern.colt.matrix.impl.DenseDoubleMatrix1D;
 import cern.colt.matrix.impl.DenseDoubleMatrix2D;
+import cern.jet.math.Functions;
 
 
 import static com.example.air.pianoprism.MatrixUtils._notBool;
 import static com.example.air.pianoprism.MatrixUtils.abs;
+import static com.example.air.pianoprism.MatrixUtils.addDimensionToArray;
 import static com.example.air.pianoprism.MatrixUtils.any;
 import static com.example.air.pianoprism.MatrixUtils.any;
 import static com.example.air.pianoprism.MatrixUtils.approxEqual;
 import static com.example.air.pianoprism.MatrixUtils.assign;
-import static com.example.air.pianoprism.MatrixUtils.assign1DC;
-import static com.example.air.pianoprism.MatrixUtils.assign1DR;
+import static com.example.air.pianoprism.MatrixUtils.assignCol;
+import static com.example.air.pianoprism.MatrixUtils.assignRow;
 import static com.example.air.pianoprism.MatrixUtils.div_elemWise;
 import static com.example.air.pianoprism.MatrixUtils.exp;
+import static com.example.air.pianoprism.MatrixUtils.find;
+import static com.example.air.pianoprism.MatrixUtils.inxsThatSatisfyComparisonCol;
+import static com.example.air.pianoprism.MatrixUtils.inxsThatSatisfyComparisonRow;
 import static com.example.air.pianoprism.MatrixUtils.log_elemWise;
 import static com.example.air.pianoprism.MatrixUtils.maximum;
 import static com.example.air.pianoprism.MatrixUtils.minusMatrix;
@@ -39,6 +44,8 @@ import static com.example.air.pianoprism.MatrixUtils.mult_matrix;
 import static com.example.air.pianoprism.MatrixUtils.nonZeroInxs;
 import static com.example.air.pianoprism.MatrixUtils.nonZeroInxsInt;
 import static com.example.air.pianoprism.MatrixUtils.plusMatrix;
+import static com.example.air.pianoprism.MatrixUtils.rand;
+import static com.example.air.pianoprism.MatrixUtils.randn;
 import static com.example.air.pianoprism.MatrixUtils.range;
 import static com.example.air.pianoprism.MatrixUtils.power_elemWise;
 import static com.example.air.pianoprism.MatrixUtils.randInt;
@@ -137,8 +144,8 @@ public class DoScoFo {
                 );
 
 
-        double minBPM = 0.75 * scoreTempo;
-        double maxBPM = 1.25 * scoreTempo;
+        final double minBPM = 0.75 * scoreTempo;
+        final double maxBPM = 1.25 * scoreTempo;
         double sigma_v = scoreTempo / 4;
 
 
@@ -166,14 +173,14 @@ public class DoScoFo {
 
 
         /// xs = zeroes (2, frameNum + 1)
-        double[][] xs = new double[2][frameNum + 1];
+        double[][] xs = new double[2][2];
         Arrays.fill(xs[0], 0);
         Arrays.fill(xs[1], 0);
 
 
         int frameHopMin = frameHop / fs / 60;
 
-        int[] F = {1, frameHopMin, 0, 1};
+        double[] F = {1, frameHopMin, 0, 1};
 
         double[][] scoreSeg = midiSeg.scoreSeg;
         double[][] scoreMP = midiSeg.scoreMP;
@@ -223,7 +230,7 @@ public class DoScoFo {
             double[] data = new double[endp - startp];
             double[][] particles = new double[2][parNum];
             double[] x_init = {minBeat, scoreTempo};
-            ;
+
 
             int jj = 0;
             for (int j = startp; j < endp; j++) {
@@ -315,7 +322,7 @@ public class DoScoFo {
                 }
             }
 
-            ///// _notBool simply elementwise '!' for array of bools
+            ///// _notBool - simply elementwise '!' for array of bools
             //// any - return true if array contains non-zero element
             /// any for 2d array, same but returns true/false for rows/columns (dim: 1/2)
 
@@ -326,7 +333,7 @@ public class DoScoFo {
 
                 // xs(:, frameNum + 1) = xs(:, frameNum)
                 for (int k = 0; k < xs.length; k++) {
-                    xs[i][frameNum + 1] = xs[i][frameNum];
+                    xs[k][1] = xs[k][0];
                 }
 
                 for (int k = 0; k < particles[0].length; k++) {
@@ -438,7 +445,154 @@ public class DoScoFo {
                     }
 
                     idx = new Resample(wx).getInxs();
+                    try {
+                        particles = plusMatrix(sliceOf2dArray(particles, 0, particles.length, idx),
+                                               addDimensionToArray(mul_elemWise(randn(parNum), 0.1),
+                                                       randn(parNum), 1 ));
+                    } catch (MatrixUtils.DimensionsDoNotCorrespondException e) {
+                        e.printStackTrace();
+                    }
 
+                     /*
+                    *
+                    *
+                    * */
+                    Object[] inxs = inxsThatSatisfyComparisonRow(particles, minBeat, 1).get(0).toArray();
+                    int[] inxs_int = new int[inxs.length];
+                    for (int ii = 0; ii < inxs.length; ii++) {
+                        inxs_int[ii] = (Integer) inxs[ii];
+                    }
+                    double[][] toFill = new double[1][inxs.length];
+                    Arrays.fill(toFill, minBeat);
+                    assign(particles, 0,1,inxs_int, toFill);
+
+                     /*
+                    *
+                    *
+                    * */
+                    inxs = inxsThatSatisfyComparisonRow(particles, maxBeat, 2).get(0).toArray();
+                    inxs_int = new int[inxs.length];
+                    for (int ii = 0; ii < inxs.length; ii++) {
+                        inxs_int[ii] = (Integer) inxs[ii];
+                    }
+                    toFill = new double[1][inxs.length];
+                    Arrays.fill(toFill, maxBeat);
+                    assign(particles, 0,1,inxs_int, toFill);
+
+                    /*
+                    *
+                    *
+                    * */
+                    inxs = inxsThatSatisfyComparisonRow(particles, minBPM, 1).get(1).toArray();
+                    inxs_int = new int[inxs.length];
+                    for (int ii = 0; ii < inxs.length; ii++) {
+                        inxs_int[ii] = (Integer) inxs[ii];
+                    }
+                    toFill = new double[1][inxs.length];
+                    Arrays.fill(toFill, maxBeat);
+                    assign(particles, 1,2,inxs_int, toFill);
+
+
+ /*
+                    *
+                    * returns ArrayList<Integer> for each row, then turns it into Object[]
+                    * */
+
+                    inxs = inxsThatSatisfyComparisonRow(particles, maxBPM, 2).get(1).toArray();
+                    inxs_int = new int[inxs.length];            //  new storage for Object[]
+                    for (int ii = 0; ii < inxs.length; ii++) {  // cast
+                        inxs_int[ii] = (Integer) inxs[ii];      // to
+                    }                                           // integer
+                    toFill = new double[1][inxs.length];        // storage values that will replaces cells in particles
+                    Arrays.fill(toFill, maxBeat);               // values
+                    assign(particles, 1,2,inxs_int, toFill);    // process of replacement, see assign in MatrixUtils
+
+
+                    xs[0][1] = mean(sliceOf2dArray(particles,0, 0, particles[0].length, true));
+                    xs[1][1] = mean(sliceOf2dArray(particles,1, 0, particles[0].length, true));
+
+                    final double cmpr1 = xs[0][0];
+                    final double cmpr2 = xs[0][2];
+
+                    DoubleMatrix1D d1 = new DenseDoubleMatrix1D (sliceOf2dArray(scoreSeg, 1, 0, scoreSeg[0].length,true));
+                    DoubleMatrix1D idx1_d = d1.copy();
+
+                    idx1_d.assign(new DoubleFunction() {
+                        @Override
+                        public double apply(double v) {
+                            return v <= cmpr1 ? 1 : 0;
+                        }
+                    });
+
+                    DoubleMatrix1D d2 = new DenseDoubleMatrix1D (sliceOf2dArray(scoreSeg, 1, 0, scoreSeg[0].length,true));
+                    DoubleMatrix1D idx2_d = d2.copy();
+                    idx2_d.assign(new DoubleFunction() {
+                        @Override
+                        public double apply(double v) {
+                            return v <= cmpr2 ? 1 : 0;
+                        }
+                    });
+
+                    DenseDoubleMatrix2D px = new DenseDoubleMatrix2D(particles);
+
+                    if (idx2_d.aggregate(Functions.plus, Functions.identity) -
+                        idx1_d.aggregate(Functions.plus, Functions.identity) > 0
+                            )
+                    {
+                        double[] ones = new double[parNum];
+                        Arrays.fill(ones, 1);
+
+                        assignRow(particles, 1, 0, particles[0].length, plusMatrix(mul_elemWise(ones, xs[1][1]), plusMatrix(randn(parNum), sigma_v)));
+
+
+                        DoubleMatrix1D px_1 = px.viewRow(1).copy();
+                        DoubleMatrix1D px_1_copy = px_1.copy();
+
+                        px_1.assign(new DoubleFunction() {
+                            @Override
+                            public double apply(double v) {
+                                return v < minBPM ? 1 : 0;
+                            }
+                        });
+
+                        px_1_copy.assign(new DoubleFunction() {
+                            @Override
+                            public double apply(double v) {
+                                return v > maxBPM ? 1 : 0;
+                            }
+                        });
+
+                        px_1.assign(px_1_copy, new DoubleDoubleFunction() {
+                            @Override
+                            public double apply(double v, double w) {
+                                boolean vb = v == 1 ? true : false;
+                                boolean wb = w == 1 ? true : false;
+                                return vb || wb == true ? 1 : 0;
+                            }
+                        });
+
+                        Object[] temp = find(px_1.toArray()).toArray();
+                        idx = new int[temp.length];
+                        for (int ii = 0; ii < temp.length; ii++) {
+                            idx[ii] = (Integer) temp[ii];
+                        }
+
+                        assign(particles, 1, idx, plusMatrix(mul_elemWise(rand(idx.length), (maxBPM - minBPM)), minBPM));
+
+                    }
+                    DenseDoubleMatrix1D res =  new DenseDoubleMatrix1D(new double[particles.length]);
+                    px.zMult(new DenseDoubleMatrix1D(F), res);
+
+                    particles = px.toArray();
+
+                    inxs = inxsThatSatisfyComparisonRow(particles, maxBeat, 2).get(0).toArray();
+                    inxs_int = new int[inxs.length];
+                    for (int ii = 0; ii < inxs.length; ii++) {
+                        inxs_int[ii] = (Integer) inxs[ii];
+                    }
+                    toFill = new double[1][inxs.length];
+                    Arrays.fill(toFill, maxBeat);
+                    assign(particles, 0,1,inxs_int, toFill);
 
 
 

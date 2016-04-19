@@ -159,7 +159,7 @@ public class MatrixUtils<T> {
 
     }
 
-    public ArrayDeque<Integer> find(double[] arr) {
+    public static ArrayDeque<Integer> find(double[] arr) {
         ArrayDeque<Integer> result = new ArrayDeque<Integer>();
 
         for (int i = 0; i< arr.length; i++) {
@@ -171,7 +171,7 @@ public class MatrixUtils<T> {
     }
 
 
-    public ArrayDeque<Integer[]>  find(double[][] arr) {
+    public static ArrayDeque<Integer[]>  find(double[][] arr) {
         ArrayDeque<Integer[]> result = new ArrayDeque<Integer[]>();
 
         for (int i = 0; i< arr.length; i++) {
@@ -185,7 +185,7 @@ public class MatrixUtils<T> {
         return result;
     }
 
-    public ArrayDeque<Integer> find(boolean[] arr) {
+    public static ArrayDeque<Integer> find(boolean[] arr) {
         ArrayDeque<Integer> result = new ArrayDeque<Integer>();
 
         for (int i = 0; i< arr.length; i++) {
@@ -197,7 +197,7 @@ public class MatrixUtils<T> {
         return result;
     }
 
-    public ArrayDeque<Integer[]>  find(boolean[][] arr) {
+    public static ArrayDeque<Integer[]>  find(boolean[][] arr) {
         ArrayDeque<Integer[]> result = new ArrayDeque<Integer[]>();
 
         for (int i = 0; i< arr.length; i++) {
@@ -968,6 +968,18 @@ public class MatrixUtils<T> {
 
         return res;
     }
+
+    public static double[] plusMatrix(double[] in1, double[] in2) {
+        double[] res = new double[in1.length];
+
+        for (int i = 0; i < in1.length; i++) {
+            res[i] = in1[i] + in2[i];
+        }
+
+        return res;
+    }
+
+
     public static double[] toDoubleArray(int[] arr) {
         double[] res = new double[arr.length];
         for (int i = 0; i < arr.length; i++) {
@@ -1489,10 +1501,17 @@ public class MatrixUtils<T> {
 
     }
 
+    public static void assign(double[][] toChange, int row0,  int[] inxs, double[] in) {
+        int count_j = 0;
+            for (int j = 0; j < inxs.length; j++) {
+                toChange[row0][inxs[j]] = in[count_j];
+                count_j++;
+            }
+
+    }
 
 
-
-    public static void assign1DC(double[][] toChange, int row0, int row1, int col, double[] in) {
+    public static void assignCol(double[][] toChange, int row0, int row1, int col, double[] in) {
         int count_i = 0;
         for (int i = row0; i < row1; i++) {
             toChange[i][col] = in[count_i];
@@ -1501,7 +1520,7 @@ public class MatrixUtils<T> {
 
     }
 
-    public static void assign1DR(double[][] toChange, int col0, int col1, int row, double[] in) {
+    public static void assignRow(double[][] toChange, int col0, int col1, int row, double[] in) {
         int count_i = 0;
         for (int j = col0; j < col1; j++) {
             toChange[row][j] = in[count_i];
@@ -1537,7 +1556,9 @@ public class MatrixUtils<T> {
         return res;
     }
 
-
+    /*
+     redundant since there is slicing function?
+     */
     public static double[] aggregateArray (double[] in1, int x0, int x1, double[] in2, int y0, int y1) {
         double[] res = new double[x1 - x0 + y1 - y0];
 
@@ -1635,7 +1656,80 @@ public class MatrixUtils<T> {
     }
 
 
+    public static double[][] randn(int n, int m) {
+        double[][] res = new double[n][m];
+        Random r = new Random();
+
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < m; j++) {
+                res[i][j] =r.nextGaussian();
+            }
+        }
+
+        return res;
+    }
 
 
+    public static double[] randn(int n) {
+        double[] res = new double[n];
+        Random r = new Random();
 
+        for (int i = 0; i < n; i++) {
+            res[i] = r.nextGaussian();
+        }
+
+        return res;
+    }
+
+
+    public static double[] rand(int n) {
+        double[] res = new double[n];
+        Random r = new Random();
+
+        for (int i = 0; i < n; i++) {
+            res[i] = r.nextDouble();
+        }
+
+        return res;
+    }
+
+    public static HashMap<Integer, ArrayList<Integer>> inxsThatSatisfyComparisonRow(double[][] in, double toCompare, int moreOrLess) {
+        HashMap<Integer, ArrayList<Integer>> map = new HashMap<>();
+
+
+        for (int i = 0; i < in.length; i++) {
+
+            for (int j = 0; j < in[0].length; j++) {
+                if (j == 0) {
+                    map.put(i, new ArrayList<Integer>());
+                }
+
+                if (moreOrLess == 1 ? in[i][j] < toCompare : in[i][j] > toCompare) {
+                    map.get(i).add(j);
+                }
+            }
+        }
+
+        return map;
+    }
+
+    public static HashMap<Integer, ArrayList<Integer>> inxsThatSatisfyComparisonCol(double[][] in, double toCompare, int moreOrLess) {
+        HashMap<Integer, ArrayList<Integer>> map = new HashMap<>();
+
+
+        for (int i = 0; i < in[0].length; i++) {
+
+            for (int j = 0; j < in.length; j++) {
+                if (j == 0) {
+                    map.put(i, new ArrayList<Integer>());
+                }
+
+                if (moreOrLess == 1 ? in[j][i] < toCompare : in[j][i] > toCompare) {
+                    map.get(i).add(j);
+                }
+            }
+        }
+
+        return map;
+    }
 }
