@@ -225,16 +225,19 @@ public class DoScoFo {
         double angle;
 
         for (int i = 0; i < frameNum; i++) {
-            int startp = 1 + (i - 1) * frameHop;
-            int endp = startp + frameLen - 1;
-            double[] data = new double[endp - startp];
+           // int startp = 1 + (i - 1) * frameHop;
+           // int endp = startp + frameLen - 1;
+         //   double[] data = new double[endp - startp];
+
+
+            double[] data = new double[sample.length];
+
             double[][] particles = new double[2][parNum];
             double[] x_init = {minBeat, scoreTempo};
 
 
-            int jj = 0;
-            for (int j = startp; j < endp; j++) {
-                data[jj] = sample[j] * win[jj];
+            for (int j = 0; j < sample.length; j++) {
+                data[j] = sample[j] * win[j];
             }
 
             if (bStart == 0) {
@@ -245,17 +248,17 @@ public class DoScoFo {
 
 
                     for (int k = 0; k < xs.length; k++) {
-                        xs[k][i] = x_init[k]; // ??????????????????
+                        xs[k][1] = x_init[k]; // ?????????????????? think I've changed this
                     }
 
 
                     for (int k = 0; k < parNum; k++) {
-                        particles[1][k] = minBeat;
+                        particles[0][k] = minBeat;
                     }
 
                     for (int k = 0; k < parNum; k++) {
                         Random rand = new Random();
-                        particles[2][k] = randInt(1, frameNum) * (maxBPM - minBPM) + minBPM;
+                        particles[1][k] = rand.nextDouble() * (maxBPM - minBPM) + minBPM;
                     }
 
 
@@ -335,9 +338,9 @@ public class DoScoFo {
                 for (int k = 0; k < xs.length; k++) {
                     xs[k][1] = xs[k][0];
                 }
-
+                Random rand = new Random();
                 for (int k = 0; k < particles[0].length; k++) {
-                    particles[0][k] = particles[0][k] + 0.01 * randInt(1, parNum);
+                    particles[0][k] = particles[0][k] + 0.01 * rand.nextGaussian();
                 }
 
                 for (int k = 0; k < particles[0].length; k++) {
