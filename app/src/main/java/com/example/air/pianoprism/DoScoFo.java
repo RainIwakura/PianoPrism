@@ -248,7 +248,7 @@ public class DoScoFo {
 
 
                     for (int k = 0; k < xs.length; k++) {
-                        xs[k][1] = x_init[k]; // ?????????????????? think I've changed this
+                        xs[k][1] = x_init[k]; // ?????????????????? //  I think I've changed this
                     }
 
 
@@ -449,9 +449,13 @@ public class DoScoFo {
 
                     idx = new Resample(wx).getInxs();
                     try {
+
+                        // px = px(:, idx) + [0.1*randn(1, parNum); randn(1, parNum)]
                         particles = plusMatrix(sliceOf2dArray(particles, 0, particles.length, idx),
                                                addDimensionToArray(mul_elemWise(randn(parNum), 0.1),
-                                                       randn(parNum), 1 ));
+                                                                   randn(parNum),
+                                                                   1 ) // 1 - dim
+                        );
                     } catch (MatrixUtils.DimensionsDoNotCorrespondException e) {
                         e.printStackTrace();
                     }
@@ -495,8 +499,7 @@ public class DoScoFo {
                     Arrays.fill(toFill, maxBeat);
                     assign(particles, 1,2,inxs_int, toFill);
 
-
- /*
+                    /*
                     *
                     * returns ArrayList<Integer> for each row, then turns it into Object[]
                     * */
@@ -514,11 +517,16 @@ public class DoScoFo {
                     xs[0][1] = mean(sliceOf2dArray(particles,0, 0, particles[0].length, true));
                     xs[1][1] = mean(sliceOf2dArray(particles,1, 0, particles[0].length, true));
 
-                    final double cmpr1 = xs[0][0];
-                    final double cmpr2 = xs[0][2];
+
+                    /*
+                     *   idx1 = xs(1, fnum) >= scoreSeg(1,:);                            % all the segments that have been passed by previous score position
+                     */
+
+                    final double cmpr1 = xs[0][0]; // cmpr1 = xs(1, fnum)
+                    final double cmpr2 = xs[0][1]; // cmpr2 = xs(1, fnum+1)
 
                     DoubleMatrix1D d1 = new DenseDoubleMatrix1D (sliceOf2dArray(scoreSeg, 1, 0, scoreSeg[0].length,true));
-                    DoubleMatrix1D idx1_d = d1.copy();
+                    DoubleMatrix1D idx1_d = d1.copy(); // scoreSeg(1,:)
 
                     idx1_d.assign(new DoubleFunction() {
                         @Override
@@ -527,8 +535,11 @@ public class DoScoFo {
                         }
                     });
 
-                    DoubleMatrix1D d2 = new DenseDoubleMatrix1D (sliceOf2dArray(scoreSeg, 1, 0, scoreSeg[0].length,true));
-                    DoubleMatrix1D idx2_d = d2.copy();
+                    /*
+                     *   idx2 = xs(1, fnum) >= scoreSeg(1,:);                            % all the segments that have been passed by previous score position
+                     */
+
+                    DoubleMatrix1D idx2_d = d1.copy();
                     idx2_d.assign(new DoubleFunction() {
                         @Override
                         public double apply(double v) {
@@ -584,7 +595,7 @@ public class DoScoFo {
 
                     }
                     DenseDoubleMatrix1D res =  new DenseDoubleMatrix1D(new double[particles.length]);
-                    px.zMult(new DenseDoubleMatrix1D(F), res);
+                    px.zMult(new DenseDoubleMatrix1D(F), res); // res = particles*F
 
                     particles = px.toArray();
 
